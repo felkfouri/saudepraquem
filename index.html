@@ -4,10 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Saúde para Quem?</title>
+<meta name="description" content="Guia interativo de análise de custo-efetividade distributiva (DCEA): laboratório, teste de aversão à desigualdade e o jogo Cobertor Curto.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: um ensaio em coluna única (68ch) com um "laboratório" de largura total no meio; cada seção separada por faixas leves. */
+/* Layout: um ensaio em coluna única (68ch) com um "laboratório" de largura total no meio; cada seção separada por faixas leves.
+   Cores só via variáveis: o tema escuro segue o sistema, ou é forçado com <html data-theme="dark|light">. */
 :root{
   --bg:#f4f7f6;        /* papel frio */
   --bg-2:#e9efed;      /* faixas */
@@ -43,7 +46,11 @@
   --q1:#5fc3bd; --q2:#4aa39e; --q3:#3a827e; --q4:#2b625f; --q5:#1f4a48;
   color-scheme:dark;
 }
+/* base */
 *{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+img{max-width:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
 .band{padding-block:3.5rem;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .band.alt{background:var(--bg-2)}
@@ -89,7 +96,8 @@ svg .mono{font-family:var(--mono)}
 .field{margin-bottom:1.05rem}
 .field label,.field .lbl{display:flex;justify-content:space-between;gap:.6rem;font-family:var(--display);font-size:.92rem;font-weight:600;margin-bottom:.25rem}
 .field .val{font-family:var(--mono);font-weight:500;color:var(--accent);font-variant-numeric:tabular-nums}
-.field .hint{font-size:.85rem;color:var(--muted);margin:.2rem 0 0;font-family:var(--display)}
+.hint{font-family:var(--display);font-size:.85rem;color:var(--muted)}
+.field .hint{margin:.2rem 0 0}
 input[type=range]{width:100%;accent-color:var(--accent);margin:0}
 input[type=number],select{font:inherit;font-family:var(--mono);font-size:.95rem;padding:.4rem .5rem;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);width:100%}
 select{font-family:var(--display)}
@@ -110,9 +118,8 @@ select{font-family:var(--display)}
 .tl span.neg{background:var(--loss)}
 .tl span.cur{background:var(--fg)}
 .tile{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.9rem 1rem;min-width:0}
-.tile .t{font-family:var(--display);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tile .t{font-family:var(--display);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;overflow-wrap:anywhere}
 .tile .n{font-family:var(--mono);font-size:clamp(1.05rem,1.9vw + .4rem,1.5rem);font-weight:500;font-variant-numeric:tabular-nums;margin:.2rem 0;line-height:1.2}
-.tile .t{overflow-wrap:anywhere}
 #gameRight .tile{padding:.75rem .8rem}
 #gameRight .tile .n{font-size:clamp(1rem,1.2vw + .3rem,1.3rem);overflow-wrap:normal;white-space:nowrap}
 #gameRight .tile .s{font-size:.78rem}
@@ -159,7 +166,9 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
 .qprog{font-family:var(--mono);font-size:.8rem;color:var(--muted)}
 .qres .n{font-family:var(--mono);font-size:2.4rem;color:var(--accent);line-height:1}
 .btn{font:inherit;font-family:var(--display);font-weight:600;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:.65rem 1rem;cursor:pointer}
+a.btn{text-decoration:none;display:inline-block}
 .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn:disabled,.chip:disabled{opacity:.5;cursor:not-allowed}
 /* jogo */
 .yr{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem}
 .yr .y{font-family:var(--display);font-weight:800;font-size:1.6rem;letter-spacing:-.01em}
@@ -185,7 +194,6 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
 .paper .side p{font-size:.84rem;line-height:1.45;margin:0 0 .7rem;padding-bottom:.6rem;border-bottom:1px dotted var(--line)}
 .paper .side p:last-child{border:0}
 .paper .side .bk{display:block;font-family:var(--display);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
-.paper .side p:nth-child(odd) .bk::before{content:""}
 .mathbox{border:1px solid var(--line);border-radius:8px;padding:.6rem .9rem;margin:.8rem 0;background:var(--bg)}
 .mathbox table{font-size:.8rem}
 .mathbox summary{font-size:.95rem}
@@ -214,9 +222,10 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
 .city .hood .d{font-family:var(--mono);font-size:.78rem;font-variant-numeric:tabular-nums}
 .citylegend{font-family:var(--display);font-size:.8rem;color:var(--muted);display:flex;gap:1rem;flex-wrap:wrap;margin:0 0 .4rem}
 .citylegend i{display:inline-block;width:.75em;height:.75em;border-radius:50%;margin-right:.35em;vertical-align:-1px}
-.card{grid-template-columns:auto 1fr auto}
 .card .ico{grid-column:1;grid-row:2/span 3;width:30px;height:30px;justify-self:center}
 .card .story,.card .meta,.card details,.card .act{grid-column:2/span 2}
+/* barra do orçamento: uma fatia por programa escolhido (cores s0–s4 se repetem) */
+.budget{margin-top:.9rem}
 .budget .slices{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--line);gap:2px}
 .budget .slices div{height:100%;min-width:0;transition:flex-basis .2s}
 .budget .slices .s0{background:var(--accent)}.budget .slices .s1{background:var(--q2)}.budget .slices .s2{background:var(--q3)}.budget .slices .s3{background:var(--q4)}.budget .slices .s4{background:var(--loss)}
@@ -224,28 +233,21 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
 .budget .slices.over{outline:2px solid var(--bad)}
 .budget .keys{display:flex;flex-wrap:wrap;gap:.3rem .8rem;font-family:var(--display);font-size:.78rem;color:var(--muted);margin-top:.3rem}
 .budget .keys i{display:inline-block;width:.7em;height:.7em;border-radius:2px;margin-right:.3em;vertical-align:-1px}
-@media (prefers-reduced-motion:reduce){.budget .slices div{transition:none}}
+.budget .lbl{font-family:var(--mono);font-size:.85rem;color:var(--muted);margin-top:.35rem}
 .pulse{animation:pulse .5s ease-out 1}
 @keyframes pulse{0%{transform:scale(.97);opacity:.6}100%{transform:scale(1);opacity:1}}
-@media (prefers-reduced-motion:reduce){.pulse{animation:none}}
+@media (prefers-reduced-motion:reduce){.budget .slices div{transition:none}.pulse{animation:none}}
+@media (prefers-reduced-motion:no-preference){.chip,.tile,.card{transition:background .15s,border-color .15s}}
 .react b{font-family:var(--display)}
 .final .n{font-family:var(--display);font-size:1.6rem;font-weight:800;margin:.2rem 0 .6rem}
-.final .grades{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:.8rem 0}
-.final .grades div{border:1px solid var(--line);border-radius:8px;padding:.7rem .8rem;background:var(--bg)}
+.final .grades{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin:.8rem 0}
+.final .grades>div{border:1px solid var(--line);border-radius:8px;padding:.7rem .8rem;background:var(--bg)}
 .final .grades .g{font-family:var(--mono);font-size:1.8rem;font-variant-numeric:tabular-nums;line-height:1.1}
 .final .grades .l{font-family:var(--display);font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .final textarea{width:100%;font:inherit;font-family:var(--mono);font-size:.82rem;border:1px solid var(--line);border-radius:6px;padding:.5rem;background:var(--bg);color:var(--fg);min-height:7em;resize:vertical}
 .mini{display:inline-flex;gap:1px;vertical-align:middle;margin-left:.3rem}
 .mini i{display:inline-block;width:5px;background:var(--accent);align-self:flex-end}
-.budget{margin-top:.9rem}
-.budget .bar{height:10px;background:var(--line);border-radius:999px;overflow:hidden}
-.budget .bar div{height:100%;background:var(--accent);width:0;transition:width .2s}
-.budget .bar div.over{background:var(--bad)}
-.budget .lbl{font-family:var(--mono);font-size:.85rem;color:var(--muted);margin-top:.35rem}
-@media (prefers-reduced-motion:no-preference){.chip,.tile,.card{transition:background .15s,border-color .15s}}
-@media (prefers-reduced-motion:reduce){.budget .bar div{transition:none}}
 </style>
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
 
@@ -256,7 +258,7 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
       <p class="eyebrow">Guia interativo · Análise econômica em saúde</p>
       <h1>Saúde para quem?</h1>
       <p class="lead" style="margin-top:1.2rem">Toda decisão sobre o que o SUS paga é também uma decisão sobre <em>quem</em> ganha e quem perde saúde. A análise de custo-efetividade distributiva torna essa segunda parte visível. Esta página explica como ela funciona e deixa você testar a lógica com os próprios dedos.</p>
-      <p style="margin:1.4rem 0 0"><a class="btn" href="#jogo" style="text-decoration:none;display:inline-block">Jogar: Cobertor Curto</a></p>
+      <p style="margin:1.4rem 0 0"><a class="btn" href="#jogo">Jogar: Cobertor Curto</a></p>
       <nav class="toc" aria-label="Seções">
         <a href="#conta">A conta de sempre</a>
         <a href="#cego">O que ela não vê</a>
@@ -356,7 +358,7 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
           <button class="chip" type="button" data-preset="aps" aria-pressed="false">Atenção primária em áreas vulneráveis</button>
           <button class="chip real" type="button" data-preset="nhs" aria-pressed="false">★ Caso real: NHS, 2015</button>
         </div>
-        <p class="hint" id="presetDesc" style="font-family:var(--display);font-size:.9rem;color:var(--muted);margin:0 0 1.1rem"></p>
+        <p class="hint" id="presetDesc" style="font-size:.9rem;margin:0 0 1.1rem"></p>
 
         <div class="field">
           <label for="gain">Saúde gerada pelo programa <span class="val" id="gainVal"></span></label>
@@ -434,7 +436,7 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
               <tbody></tbody>
             </table>
           </div>
-          <p class="hint" id="atk" style="font-family:var(--display);font-size:.85rem;color:var(--muted);margin-top:.6rem"></p>
+          <p class="hint" id="atk" style="margin-top:.6rem"></p>
         </details>
       </div>
     </div>
@@ -467,7 +469,7 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
       <p class="eyebrow">Parte 4c · Jogo</p>
       <h2>Cobertor Curto</h2>
       <p>Assuma a secretaria de saúde de uma cidade de 1 milhão de habitantes por dez anos. A cada ano, um orçamento e quatro propostas na mesa; a cada escolha, dois jurados que discordam. Em 2036, o retrato da sua população. Leva uns 15 minutos.</p>
-      <p><a class="btn" href="#jogo" style="text-decoration:none;display:inline-block">Jogar</a></p>
+      <p><a class="btn" href="#jogo">Jogar</a></p>
     </div>
     <div class="prose">
       <h3 style="margin-top:2.6rem">O que o jogo ensina que o laboratório não mostra</h3>
@@ -545,7 +547,7 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
 <header class="band" style="padding-block:1.4rem 1rem;border-bottom:1px solid var(--line)">
   <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
     <div><p class="eyebrow" style="margin:0 0 .2rem">Saúde para quem? · Jogo · dez anos na secretaria</p><h2 style="margin:0;font-size:1.5rem">Cobertor Curto</h2></div>
-    <a class="btn ghost" href="#guia" style="text-decoration:none">← Voltar ao guia</a>
+    <a class="btn ghost" href="#guia">← Voltar ao guia</a>
   </div>
 </header>
 
@@ -578,7 +580,7 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
         <div style="margin-top:.9rem">
           <div class="field">
             <div class="lbl"><span>Duração</span></div>
-            <div class="presets" role="group" aria-label="Duração"><button class="chip" type="button" data-years="10" aria-pressed="true">10 anos</button><button class="chip" type="button" data-years="5" aria-pressed="false">5 anos (rápido)</button></div>
+            <div class="presets" role="group" aria-label="Duração" id="yearsPick"><button class="chip" type="button" data-years="10" aria-pressed="true">10 anos</button><button class="chip" type="button" data-years="5" aria-pressed="false">5 anos (rápido)</button></div>
           </div>
           <div class="field">
             <div class="lbl"><span>Dificuldade</span></div>
@@ -636,7 +638,6 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
           <p class="sub">Em dias de vida saudável por pessoa. Para baixo é melhor.</p>
           <div id="gLine"></div>
         </div>
-        <p class="hint" id="gPending" style="font-family:var(--display);font-size:.88rem;color:var(--muted);margin:0"></p>
       </div>
     </div>
   </div>
@@ -644,6 +645,15 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
 </div>
 
 <script>
+/* Todo o comportamento da página, em uma IIFE sem dependências. Seções, nesta ordem:
+   1. Núcleo da DCEA (ede, evaluate) e estado do laboratório
+   2. Laboratório: controles, render() e gráficos SVG
+   3. Teste "Qual é o seu ε?"
+   4. Rotas: #jogo mostra o jogo, qualquer outro hash mostra o guia
+   5. Jogo Cobertor Curto: dados (cidades, cards, dilemas, eventos), motor (newGame, dealYear, closeYear) e telas
+   Unidades: saúde por grupo em QALYs absolutos (cada grupo tem POP pessoas); saúde de partida (QALE) em anos
+   por pessoa; custos em R$ milhões. Os vetores de 5 posições vão sempre dos mais pobres (0) aos mais ricos (4).
+   Fórmulas e regras do jogo documentadas em docs/modelo.md e docs/jogo.md. */
 (function(){
   const POP=200000, N=5, TOTAL=POP*N;
   const H0BR=[62,65.5,68,70,72.5]; // QALE ilustrativa por quintil (Brasil, fictícia)
@@ -659,10 +669,14 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
       src:'https://eprints.whiterose.ac.uk/107248/1/Asaria_et_al_2015_Health_Economics.pdf'}
   };
   const QL=['Mais pobres','Pobres','Do meio','Ricos','Mais ricos'];
-  const QS=['Mais pobres','Pobres','Do meio','Ricos','Mais ricos'];
   const fmt=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
   const fmt1=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1,minimumFractionDigits:1});
+  const dec=(x,d)=>x.toFixed(d).replace('.',','); // casas fixas com vírgula (EDE, Atkinson)
+  const sgn=x=>(x>0?'+':'')+fmt.format(x);
+  const sgn1=x=>(x>0?'+':'')+fmt1.format(x);
   const $=id=>document.getElementById(id);
+  // marca só o chip `on` (ou nenhum, com null) dentro de um grupo de botões aria-pressed
+  const press=(chips,on)=>chips.forEach(c=>c.setAttribute('aria-pressed',String(c===on)));
 
   const state={gain:8000,shares:[12,16,20,24,28],cost:200,limiar:40000,oc:'igual',eps:11,cur:'R$',h0:H0BR};
   const money=v=>state.cur+' '+fmt.format(Math.round(v));
@@ -677,39 +691,46 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     r.addEventListener('input',()=>{state.shares[i]=+r.value;clearPreset();render();});
   }
 
-  function mean(a){return a.reduce((s,x)=>s+x,0)/a.length}
+  const sum=a=>a.reduce((s,x)=>s+x,0);
+  const mean=a=>sum(a)/a.length;
+  // equivalente igualmente distribuído de Atkinson: [mean((h/m)^(1-ε))]^(1/(1-ε))·m; média geométrica em ε = 1
   function ede(h,eps){
     const m=mean(h);
     if(Math.abs(eps-1)<1e-9) return Math.exp(mean(h.map(x=>Math.log(x))));
     const s=mean(h.map(x=>Math.pow(x/m,1-eps)));
     return m*Math.pow(s,1/(1-eps));
   }
-  // núcleo da DCEA: recebe ganhos e perdas por grupo e devolve totais, EDE e índices
+  // núcleo da DCEA: recebe saúde de partida e ganhos/perdas por grupo (QALYs) e devolve
+  // saldo simples (net), saldo ponderado por equidade (ew = ΔEDE × população), Atkinson antes/depois e
+  // gap (saldo dos mais pobres − saldo dos mais ricos; positivo = aproxima os extremos)
   function evaluate(h0,gainQ,lossQ,eps){
     const netQ=gainQ.map((g,i)=>g-lossQ[i]);
     const h1=h0.map((h,i)=>h+netQ[i]/POP);
     const e0=ede(h0,eps), e1=ede(h1,eps);
-    return {gainQ,lossQ,netQ,h1,net:netQ.reduce((s,x)=>s+x,0),ew:(e1-e0)*TOTAL,a0:1-e0/mean(h0),a1:1-e1/mean(h1),gap:netQ[0]-netQ[4]};
+    return {gainQ,lossQ,netQ,h1,net:sum(netQ),ew:(e1-e0)*TOTAL,a0:1-e0/mean(h0),a1:1-e1/mean(h1),gap:netQ[0]-netQ[4]};
   }
+  // cenário do laboratório: ganho repartido pelas participações normalizadas; custo ÷ limiar = QALYs deslocados,
+  // repartidos pelo perfil de custo de oportunidade escolhido
   function compute(eps){
-    const sum=state.shares.reduce((s,x)=>s+x,0);
-    const sh=sum>0?state.shares.map(x=>x/sum):Array(N).fill(1/N);
+    const tot=sum(state.shares);
+    const sh=tot>0?state.shares.map(x=>x/tot):Array(N).fill(1/N);
     const displaced=state.cost*1e6/state.limiar;
     const oc=OC[state.oc].map(x=>x/100);
     const r=evaluate(state.h0,sh.map(s=>state.gain*s),oc.map(o=>displaced*o),eps);
     return Object.assign(r,{sh,displaced,icer:state.gain>0?state.cost*1e6/state.gain:Infinity});
   }
 
-  function clearPreset(){document.querySelectorAll('#controls .chip').forEach(c=>c.setAttribute('aria-pressed','false'));$('presetDesc').textContent='Cenário personalizado.';}
+  const presetChips=[...document.querySelectorAll('#controls .chip')];
+  function clearPreset(){press(presetChips,null);$('presetDesc').textContent='Cenário personalizado.';}
   function applyPreset(k){
     const p=PRESETS[k];state.gain=p.gain;state.shares=p.shares.slice();state.cost=p.cost;state.oc=p.oc;
     state.limiar=p.limiar||40000;state.cur=p.cur||'R$';state.h0=p.h0||H0BR;
     $('gain').value=p.gain;$('cost').value=p.cost;$('oc').value=p.oc;$('limiar').value=state.limiar;
-    document.querySelectorAll('#controls .chip').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.preset===k)));
+    press(presetChips,presetChips.find(c=>c.dataset.preset===k));
     $('presetDesc').innerHTML=p.desc+(p.src?' <a class="src" href="'+p.src+'" target="_blank" rel="noopener">Ler o artigo (PDF)</a>':'');
     render();
   }
-  document.querySelectorAll('#controls .chip').forEach(c=>c.addEventListener('click',()=>applyPreset(c.dataset.preset)));
+  presetChips.forEach(c=>c.addEventListener('click',()=>applyPreset(c.dataset.preset)));
   $('gain').addEventListener('input',e=>{state.gain=+e.target.value;clearPreset();render();});
   $('cost').addEventListener('input',e=>{state.cost=+e.target.value;clearPreset();render();});
   $('limiar').addEventListener('input',e=>{const v=+e.target.value;if(v>=5000){state.limiar=v;render();}});
@@ -723,8 +744,8 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     return 'Alta: prioridade forte aos que têm menos saúde, aproximando-se de "o que importa é o pior grupo".';
   }
   function badge(ok,yes,no){return '<span class="badge '+(ok?'ok':'no')+'">'+(ok?yes:no)+'</span>'}
-  function sgn(x){return (x>0?'+':'')+fmt.format(x)}
 
+  // redesenha todo o laboratório a partir de `state` (~1 ms; roda a cada evento dos controles)
   function render(){
     const r=compute(state.eps);
     for(let i=0;i<N;i++){$('sh'+i).value=state.shares[i];$('pct'+i).textContent=Math.round(r.sh[i]*100)+'%';}
@@ -754,17 +775,12 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     else v='<strong>As contas discordam.</strong> Pela conta tradicional o programa tira saúde do sistema, mas ele '+dist+'. Com ε = '+fmt1.format(state.eps)+', o ganho dos mais pobres vale esse sacrifício.';
     $('verdict').innerHTML=v;
 
-    drawBars(r);drawPlane(r,'chartPlane');drawEps();
-    const tb=$('tbl').querySelector('tbody');tb.innerHTML='';
-    for(let i=0;i<N;i++){
-      const tr=document.createElement('tr');
-      tr.innerHTML='<td>'+QL[i]+'</td><td class="num">'+fmt1.format(state.h0[i])+'</td><td class="num">'+fmt.format(Math.round(r.gainQ[i]))+'</td><td class="num">−'+fmt.format(Math.round(r.lossQ[i]))+'</td><td class="num">'+sgn(Math.round(r.netQ[i]))+'</td><td class="num">'+sgn1(r.netQ[i]/POP*365)+' dias</td>';
-      tb.appendChild(tr);
-    }
-    $('atk').textContent='Índice de Atkinson (ε = '+fmt1.format(state.eps)+'): antes '+r.a0.toFixed(5)+', depois '+r.a1.toFixed(5)+' ('+(r.a1<r.a0?'desigualdade menor':r.a1>r.a0?'desigualdade maior':'sem mudança')+'). Saúde deslocada: '+fmt.format(Math.round(r.displaced))+' QALYs.';
+    drawBars(r);drawPlane(r,'chartPlane');drawEps(r);
+    $('tbl').tBodies[0].innerHTML=QL.map((q,i)=>'<tr><td>'+q+'</td><td class="num">'+fmt1.format(state.h0[i])+'</td><td class="num">'+fmt.format(Math.round(r.gainQ[i]))+'</td><td class="num">−'+fmt.format(Math.round(r.lossQ[i]))+'</td><td class="num">'+sgn(Math.round(r.netQ[i]))+'</td><td class="num">'+sgn1(r.netQ[i]/POP*365)+' dias</td></tr>').join('');
+    $('atk').textContent='Índice de Atkinson (ε = '+fmt1.format(state.eps)+'): antes '+dec(r.a0,5)+', depois '+dec(r.a1,5)+' ('+(r.a1<r.a0?'desigualdade menor':r.a1>r.a0?'desigualdade maior':'sem mudança')+'). Saúde deslocada: '+fmt.format(Math.round(r.displaced))+' QALYs.';
   }
-  function sgn1(x){return (x>0?'+':'')+fmt1.format(x)}
 
+  /* Gráficos: SVG montado como string, com viewBox fixo (640 de largura) e margens L/R/T/B; escala via CSS. */
   function drawBars(r){
     const W=640,H=300,L=56,R=16,T=18,B=48,cw=W-L-R,ch=H-T-B;
     const mx=Math.max(1000,...r.gainQ,...r.lossQ)*1.15;
@@ -780,12 +796,13 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
       s+='<rect x="'+(cx-bw)+'" y="'+y(r.gainQ[i])+'" width="'+bw+'" height="'+(y(0)-y(r.gainQ[i]))+'" fill="var(--accent)"/>';
       s+='<rect x="'+cx+'" y="'+y(0)+'" width="'+bw+'" height="'+(y(-r.lossQ[i])-y(0))+'" fill="var(--loss)"/>';
       s+='<circle cx="'+cx+'" cy="'+y(r.netQ[i])+'" r="5" fill="var(--fg)" stroke="var(--card)" stroke-width="2"/>';
-      s+='<text x="'+cx+'" y="'+(H-B+20)+'" font-size="11" text-anchor="middle" font-weight="600">'+QS[i]+'</text>';
+      s+='<text x="'+cx+'" y="'+(H-B+20)+'" font-size="11" text-anchor="middle" font-weight="600">'+QL[i]+'</text>';
     }
     s+='<text x="'+L+'" y="'+(H-6)+'" font-size="11" class="mut">20% mais pobres</text><text x="'+(W-R)+'" y="'+(H-6)+'" font-size="11" class="mut" text-anchor="end">20% mais ricos</text>';
     s+='<text x="'+(L-6)+'" y="'+(T-6)+'" font-size="10" class="mut" text-anchor="end">QALYs</text></svg>';
     $('chartBars').innerHTML=s;
   }
+  // marcas "redondas" (1, 2 ou 5 × 10^k) entre 0 e mx, de 2 a 6 marcas
   function niceTicks(mx){const step=Math.pow(10,Math.floor(Math.log10(mx)));let st=step;if(mx/st>6)st*=2;if(mx/st<2.5)st/=2;const out=[];for(let t=st;t<=mx;t+=st)out.push(Math.round(t));return out;}
 
   function drawPlane(r,target){
@@ -810,9 +827,11 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     $(target).innerHTML=s;
   }
 
-  function drawEps(){
+  // curva do saldo ponderado em função de ε: a distribuição final (r.h1) não depende de ε, só o EDE
+  function drawEps(r){
     const W=640,H=260,L=56,R=16,T=18,B=40,cw=W-L-R,ch=H-T-B;
-    const pts=[];for(let e=0;e<=20;e+=0.25)pts.push([e,compute(e).ew]);
+    const ewAt=e=>(ede(r.h1,e)-ede(state.h0,e))*TOTAL;
+    const pts=[];for(let e=0;e<=20;e+=0.25)pts.push([e,ewAt(e)]);
     const ym=Math.max(5000,...pts.map(p=>Math.abs(p[1])))*1.15;
     const x=e=>L+(e/20)*cw,y=v=>T+ch/2-(v/ym)*(ch/2);
     let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Saldo ponderado por equidade em função da aversão à desigualdade">';
@@ -824,14 +843,14 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     s+='<path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2.5"/>';
     let be=null;for(let i=1;i<pts.length;i++){if((pts[i-1][1]<0)!==(pts[i][1]<0)){be=pts[i][0];break;}}
     if(be!==null){s+='<line x1="'+x(be)+'" x2="'+x(be)+'" y1="'+T+'" y2="'+(T+ch)+'" stroke="var(--loss)" stroke-dasharray="3 4"/><text x="'+(x(be)+5)+'" y="'+(T+12)+'" font-size="11" fill="var(--loss)" font-weight="600">veredito muda em ε ≈ '+fmt1.format(be)+'</text>';}
-    const cur=compute(state.eps).ew;
-    s+='<circle cx="'+x(state.eps)+'" cy="'+y(cur)+'" r="7" fill="var(--fg)" stroke="var(--card)" stroke-width="3"/>';
+    s+='<circle cx="'+x(state.eps)+'" cy="'+y(r.ew)+'" r="7" fill="var(--fg)" stroke="var(--card)" stroke-width="3"/>';
     s+='</svg>';
     $('chartEps').innerHTML=s;
   }
 
   /* ---------- Teste: qual é o seu ε? ---------- */
   // Indiferença entre X QALYs para Q5 e Y para Q1 implica (X/Y) = (h5/h1)^ε  →  ε = ln(X/Y) / ln(h5/h1)
+  // O ganho dos mais ricos fica fixo em QX; o dos mais pobres desce pela LADDER até a pessoa trocar de lado.
   const QX=1000, LADDER=[1000,800,600,450,300,200,120,60];
   let qi=0, lastB=null;
   function quizQ(){
@@ -856,25 +875,27 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     const cmp=eps<1?'Bem abaixo da mediana inglesa (≈ 11).':eps<6?'Abaixo da mediana inglesa (≈ 11), mas já dando algum peso à distribuição.':eps<=15?'Na faixa da mediana medida na Inglaterra (≈ 11).':'Acima da mediana inglesa (≈ 11).';
     $('quizBody').innerHTML='<div class="qcard qres"><p class="qprog">Resultado</p><div class="n">ε ≈ '+fmt1.format(Math.min(eps,20))+'</div><p style="margin:0">'+txt+' '+cmp+'</p>'+
       '<div style="display:flex;gap:.6rem;flex-wrap:wrap"><button class="btn" id="qUse" type="button">Usar este ε no laboratório</button><button class="btn ghost" id="qAgain" type="button">Refazer</button></div>'+
-      '<p class="hint" style="font-family:var(--display);font-size:.85rem;color:var(--muted);margin:0">A conversão usa a razão entre a saúde de partida dos dois grupos no cenário brasileiro ilustrativo. Mude as diferenças de saúde e o mesmo "trade-off" dá outro ε: o parâmetro não vive sozinho.</p></div>';
-    $('qUse').addEventListener('click',()=>{state.eps=Math.round(Math.min(eps,20)*2)/2;$('eps').value=state.eps;render();document.getElementById('lab').scrollIntoView({behavior:'smooth'});});
+      '<p class="hint" style="margin:0">A conversão usa a razão entre a saúde de partida dos dois grupos no cenário brasileiro ilustrativo. Mude as diferenças de saúde e o mesmo "trade-off" dá outro ε: o parâmetro não vive sozinho.</p></div>';
+    $('qUse').addEventListener('click',()=>{state.eps=Math.round(Math.min(eps,20)*2)/2;$('eps').value=state.eps;render();$('lab').scrollIntoView({behavior:'smooth'});});
     $('qAgain').addEventListener('click',()=>{qi=0;lastB=null;quizQ();});
   }
   quizQ();
 
   /* ---------- Rotas: guia / jogo ---------- */
-  let view=null;
+  let view=null; // true = jogo visível; null antes da primeira rota
   function route(){
     const j=location.hash==='#jogo';
     $('jogo').hidden=!j;$('guia').hidden=j;
-    if(view!==null&&view!==j)window.scrollTo(0,0);
-    if(view===null&&j)window.scrollTo(0,0);
+    if(view===null?j:view!==j)window.scrollTo(0,0); // troca de tela começa do topo; âncoras do guia rolam normalmente
     view=j;
   }
   window.addEventListener('hashchange',route);
 
   /* ---------- Jogo: dez anos de gestão ---------- */
+  // Y0: primeiro ano do mandato; GL: limiar (R$/QALY) que converte gasto em saúde deslocada; BASE_BUDGET: R$ mi por ano
   const Y0=2027, GL=40000, BASE_BUDGET=600;
+  // Cidade: h0 (QALE de partida por grupo), erosion (QALYs que a rotina perde por ano sem reforço),
+  // srcAb (quem perde quando o dinheiro sai da atenção básica, em %), infra (multiplicador do ganho de infraestrutura)
   const CITIES={
     capital:{nm:'Capital desigual',h0:[60,64.5,68,70.5,73.5],erosion:[300,220,140,90,60],srcAb:[35,27,20,12,6],infra:1,
       desc:'1 milhão de habitantes, 13,5 anos de diferença em vida saudável entre os mais pobres e os mais ricos. Rede hospitalar grande; o corte na rotina cai pesado sobre a periferia.'},
@@ -886,7 +907,8 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
   let CITY=CITIES.capital;
   let H0G=CITY.h0, EROSION=CITY.erosion; // anos de vida saudável que a rotina perde a cada ano sem reforço (envelhecimento, demanda)
   const POOR=[40,28,17,10,5], RICH=[5,10,20,30,35];
-  // complementos por card: cada proposta pode ter uma decisão extra, ou nenhuma
+  // Complemento ("como fazer"), ligado ao card pelo campo `addon`: multiplica custo e ganho e mistura a distribuição
+  // do card com um perfil de referência. mix:[w,ref] → participação final = (1−w)·original + w·ref (ver effShares).
   const ADDON={
     busca:{t:'com busca ativa',d:'+25% no custo, +10% no ganho. Equipes vão atrás de quem não chega sozinho; o ganho pende para quem tem menos.',cost:1.25,gain:1.10,mix:[0.5,POOR]},
     periferia:{t:'instalar na periferia',d:'+15% no custo (terreno, logística, equipe). O acesso pende para quem mora longe do centro.',cost:1.15,gain:1.0,mix:[0.5,POOR]},
@@ -894,44 +916,60 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     particular:{t:'estender à rede particular conveniada',d:'+10% no custo, +15% no ganho. Alcança também quem tem plano; o ganho pende para quem tem mais.',cost:1.10,gain:1.15,mix:[0.5,RICH]},
     gratuito:{t:'com transporte gratuito até o serviço',d:'+20% no custo. Quem faltava por falta de passagem passa a ir; pende para quem tem menos.',cost:1.20,gain:1.05,mix:[0.5,POOR]}
   };
-  const ADDON_BY_CARD={'Vacinação na escola pública':'particular','Rastreamento de câncer por carta':'busca','Cessação do tabagismo na UBS':'busca','Atenção primária em áreas vulneráveis':null,'Telessaúde para o interior':null,'Centro de cirurgia robótica':'criterio','Medicamento oncológico de alto custo':'gratuito','Agentes comunitários de saúde':null,'Mamografia móvel':'busca','UTI neonatal regional':'periferia','Hipertensão e diabetes na atenção básica':'busca','Hospital-dia de cirurgia eletiva':'criterio','Saúde mental na atenção básica':null,'Tomógrafos para os prontos-socorros':'periferia','Check-up anual subsidiado':null,'Terapia gênica para doença rara':null,'Saneamento e vigilância de arboviroses':null,'Transporte sanitário para consultas':null,'Cirurgia bariátrica':'criterio','Campanha de mídia sobre alimentação':null,'Pré-natal ampliado':'busca','Central inteligente de regulação':null,'Novas vagas de hemodiálise':'periferia','Aplicativo de bem-estar':null,'Ampliar o SAMU':'periferia','Mutirão de catarata':'gratuito','Farmácia municipal gratuita':null};
-  const addonOf=c=>ADDON[ADDON_BY_CARD[c.nm]]||null;
+  const addonOf=c=>ADDON[c.addon]||null;
   const SRC={
     ab:{nm:'Da rotina da atenção básica',get oc(){return CITY.srcAb;},hint:'Menos consultas e visitas nas unidades básicas. Quem sente são as famílias que só têm o SUS, e elas raramente conseguem se fazer ouvir.'},
     hosp:{nm:'Dos hospitais e dos exames',oc:[20,20,20,20,20],hint:'Filas de cirurgia e de exames crescem. Atinge todos os grupos de forma parecida, porque os hospitais públicos recebem gente de toda a cidade.'},
     sub:{nm:'De outras pastas da prefeitura',oc:[10,15,20,25,30],hint:'A prefeitura remaneja verba de obras e eventos. Quem perde são bairros centrais e empresas, que têm voz na câmara: o orçamento da saúde no ano que vem cai R$ 120 mi.'}
   };
-  // profile: fração do ganho que aparece no ano da decisão, no seguinte, etc.
+  // De onde sai o dinheiro do ano: oc = como os QALYs deslocados se repartem entre os grupos (%).
+  // Card de proposta:
+  //   nm       nome (também usado pelo tutorial e pelas manchetes)
+  //   src      estudo ou fonte que inspirou os números (mostrado em "fonte")
+  //   cost     R$ mi, pagos no ano da decisão          gain  QALYs prometidos no total
+  //   sh       peso do ganho por grupo (normalizado)    tipo  prevenção | tratamento | infraestrutura | gestão
+  //   ev       forte | moderada | fraca: faixa sorteada de realização do ganho (EVSPREAD)
+  //   profile  fração do ganho que aparece no ano da decisão, no seguinte, etc. (soma 1)
+  //   tags     opcional: 'aps' conta para a transferência federal; 'vig' amortece a epidemia
+  //   addon    opcional: chave de ADDON                 story  frase de abertura do card
   const DECK=[
-    {nm:'Vacinação na escola pública',src:'programas de vacinação de HPV baseados em escolas alcançam cobertura maior e menos desigual do que a vacinação em unidades de saúde (revisões sistemáticas; recomendação da OMS, 2022)',cost:150,gain:12000,sh:[32,26,20,13,9],tipo:'prevenção',ev:'forte',profile:[.3,.4,.3],story:'Laura, 9 anos, estuda na escola municipal do bairro. A vacina chega até ela sem a mãe precisar faltar ao trabalho.'},
-    {nm:'Rastreamento de câncer por carta',src:'Asaria et al., 2015: rastreamento colorretal do NHS, adesão de 35% nas áreas mais pobres a 61% nas mais ricas',cost:200,gain:8000,sh:[12,16,20,24,28],tipo:'prevenção',ev:'forte',profile:[.2,.3,.3,.2],story:'A carta chega a todos. Quem lê, entende e tem como ir ao exame costuma ser quem já tem mais.'},
-    {nm:'Cessação do tabagismo na UBS',src:'tratamento do tabagismo na atenção primária é uma das intervenções de melhor custo-efetividade documentadas (NICE; Programa Nacional de Controle do Tabagismo, INCA); prevalência de tabagismo é maior nos grupos de menor renda (PNS/Vigitel)',cost:90,gain:4000,sh:[30,25,20,15,10],tipo:'prevenção',ev:'forte',profile:[.2,.3,.3,.2],story:'Seu Antônio, 58, pedreiro, fuma desde os 14. Nunca ninguém lhe ofereceu ajuda para parar.'},
+    {nm:'Vacinação na escola pública',src:'programas de vacinação de HPV baseados em escolas alcançam cobertura maior e menos desigual do que a vacinação em unidades de saúde (revisões sistemáticas; recomendação da OMS, 2022)',cost:150,gain:12000,sh:[32,26,20,13,9],tipo:'prevenção',ev:'forte',profile:[.3,.4,.3],addon:'particular',story:'Laura, 9 anos, estuda na escola municipal do bairro. A vacina chega até ela sem a mãe precisar faltar ao trabalho.'},
+    {nm:'Rastreamento de câncer por carta',src:'Asaria et al., 2015: rastreamento colorretal do NHS, adesão de 35% nas áreas mais pobres a 61% nas mais ricas',cost:200,gain:8000,sh:[12,16,20,24,28],tipo:'prevenção',ev:'forte',profile:[.2,.3,.3,.2],addon:'busca',story:'A carta chega a todos. Quem lê, entende e tem como ir ao exame costuma ser quem já tem mais.'},
+    {nm:'Cessação do tabagismo na UBS',src:'tratamento do tabagismo na atenção primária é uma das intervenções de melhor custo-efetividade documentadas (NICE; Programa Nacional de Controle do Tabagismo, INCA); prevalência de tabagismo é maior nos grupos de menor renda (PNS/Vigitel)',cost:90,gain:4000,sh:[30,25,20,15,10],tipo:'prevenção',ev:'forte',profile:[.2,.3,.3,.2],addon:'busca',story:'Seu Antônio, 58, pedreiro, fuma desde os 14. Nunca ninguém lhe ofereceu ajuda para parar.'},
     {nm:'Atenção primária em áreas vulneráveis',src:'expansão da Estratégia Saúde da Família associada a queda de mortalidade cardiovascular e de internações evitáveis, com efeito maior onde a cobertura era menor (Rasella et al., BMJ 2014; Macinko & Harris, NEJM 2015; Hone et al., 2021)',cost:400,gain:9000,sh:[45,27,15,9,4],tipo:'infraestrutura',ev:'moderada',profile:[.3,.35,.35],tags:['aps'],story:'Três novas unidades nas regiões onde hoje a consulta mais perto fica a duas conduções.'},
     {nm:'Telessaúde para o interior',src:'Telessaúde Brasil Redes / TelessaúdeRS: redução de encaminhamentos e de espera por especialista',cost:120,gain:3500,sh:[38,27,18,11,6],tipo:'gestão',ev:'moderada',profile:[.5,.5],tags:['aps'],story:'Dona Cida, 71, mora a 90 km do especialista. Com a consulta por vídeo na UBS, deixa de esperar oito meses.'},
-    {nm:'Centro de cirurgia robótica',src:'avaliações de tecnologias em saúde costumam encontrar custo por QALY da cirurgia robótica acima dos limiares usuais quando comparada à laparoscopia, com benefício clínico pequeno na maioria das indicações; os centros ficam em grandes cidades',cost:350,gain:5000,sh:[5,10,20,30,35],tipo:'infraestrutura',ev:'fraca',profile:[.4,.3,.3],story:'Tecnologia de ponta num hospital central. Chega primeiro a quem mora perto e tem quem o leve.'},
-    {nm:'Medicamento oncológico de alto custo',src:'perfil comum de medicamentos oncológicos avaliados pela CONITEC: ganho real de sobrevida, custo por QALY alto e acesso dependente de diagnóstico precoce e de chegar a um centro de referência',cost:600,gain:6000,sh:[10,14,20,26,30],tipo:'tratamento',ev:'moderada',profile:[.6,.4],story:'Ganho real para quem consegue o diagnóstico cedo e chega ao centro de referência.'},
+    {nm:'Centro de cirurgia robótica',src:'avaliações de tecnologias em saúde costumam encontrar custo por QALY da cirurgia robótica acima dos limiares usuais quando comparada à laparoscopia, com benefício clínico pequeno na maioria das indicações; os centros ficam em grandes cidades',cost:350,gain:5000,sh:[5,10,20,30,35],tipo:'infraestrutura',ev:'fraca',profile:[.4,.3,.3],addon:'criterio',story:'Tecnologia de ponta num hospital central. Chega primeiro a quem mora perto e tem quem o leve.'},
+    {nm:'Medicamento oncológico de alto custo',src:'perfil comum de medicamentos oncológicos avaliados pela CONITEC: ganho real de sobrevida, custo por QALY alto e acesso dependente de diagnóstico precoce e de chegar a um centro de referência',cost:600,gain:6000,sh:[10,14,20,26,30],tipo:'tratamento',ev:'moderada',profile:[.6,.4],addon:'gratuito',story:'Ganho real para quem consegue o diagnóstico cedo e chega ao centro de referência.'},
     {nm:'Agentes comunitários de saúde',src:'ACS na ESF: adesão a tratamento crônico e vacinação; cobertura concentrada em áreas de baixa renda',cost:180,gain:5500,sh:[42,28,16,9,5],tipo:'gestão',ev:'forte',profile:[.4,.3,.3],tags:['aps'],story:'Marcos bate na porta de 180 famílias por mês. Sabe quem parou de tomar o remédio da pressão.'},
-    {nm:'Mamografia móvel',src:'unidades móveis de mamografia alcançam mulheres sem rastreamento prévio (programas estaduais e literatura internacional)',cost:110,gain:3000,sh:[30,26,20,14,10],tipo:'prevenção',ev:'moderada',profile:[.3,.4,.3],story:'O caminhão estaciona na praça. Quem nunca fez o exame faz ali mesmo.'},
-    {nm:'UTI neonatal regional',src:'regionalização de UTI neonatal e transporte de risco: mortalidade neonatal menor (Rede Cegonha; literatura de regionalização)',cost:300,gain:7000,sh:[34,26,19,13,8],tipo:'infraestrutura',ev:'forte',profile:[.5,.5],story:'Bebês prematuros das cidades vizinhas deixam de viajar três horas em ambulância.'},
-    {nm:'Hipertensão e diabetes na atenção básica',src:'manejo de hipertensão e diabetes na APS: altamente custo-efetivo, com benefícios (AVC, diálise, amputação) após anos (HiperDia; revisões)',cost:160,gain:7500,sh:[33,27,19,13,8],tipo:'prevenção',ev:'forte',profile:[.15,.25,.3,.3],tags:['aps'],story:'Pouco glamour, muito resultado: menos AVC, menos amputação, menos diálise daqui a dez anos.'},
-    {nm:'Hospital-dia de cirurgia eletiva',src:'mutirões e hospital-dia de cirurgias eletivas: ganho imediato; filas do SUS concentradas em quem não tem plano',cost:220,gain:6500,sh:[28,24,20,16,12],tipo:'tratamento',ev:'forte',profile:[.7,.3],story:'Hérnias e vesículas da fila de espera. Quem espera mais é quem não tem plano.'},
+    {nm:'Mamografia móvel',src:'unidades móveis de mamografia alcançam mulheres sem rastreamento prévio (programas estaduais e literatura internacional)',cost:110,gain:3000,sh:[30,26,20,14,10],tipo:'prevenção',ev:'moderada',profile:[.3,.4,.3],addon:'busca',story:'O caminhão estaciona na praça. Quem nunca fez o exame faz ali mesmo.'},
+    {nm:'UTI neonatal regional',src:'regionalização de UTI neonatal e transporte de risco: mortalidade neonatal menor (Rede Cegonha; literatura de regionalização)',cost:300,gain:7000,sh:[34,26,19,13,8],tipo:'infraestrutura',ev:'forte',profile:[.5,.5],addon:'periferia',story:'Bebês prematuros das cidades vizinhas deixam de viajar três horas em ambulância.'},
+    {nm:'Hipertensão e diabetes na atenção básica',src:'manejo de hipertensão e diabetes na APS: altamente custo-efetivo, com benefícios (AVC, diálise, amputação) após anos (HiperDia; revisões)',cost:160,gain:7500,sh:[33,27,19,13,8],tipo:'prevenção',ev:'forte',profile:[.15,.25,.3,.3],tags:['aps'],addon:'busca',story:'Pouco glamour, muito resultado: menos AVC, menos amputação, menos diálise daqui a dez anos.'},
+    {nm:'Hospital-dia de cirurgia eletiva',src:'mutirões e hospital-dia de cirurgias eletivas: ganho imediato; filas do SUS concentradas em quem não tem plano',cost:220,gain:6500,sh:[28,24,20,16,12],tipo:'tratamento',ev:'forte',profile:[.7,.3],addon:'criterio',story:'Hérnias e vesículas da fila de espera. Quem espera mais é quem não tem plano.'},
     {nm:'Saúde mental na atenção básica',src:'matriciamento e psicólogo na APS: redução de encaminhamentos ao CAPS; evidência moderada de custo-efetividade',cost:140,gain:4500,sh:[30,25,20,15,10],tipo:'tratamento',ev:'moderada',profile:[.5,.5],tags:['aps'],story:'Psicólogo na UBS, sem precisar de encaminhamento. A fila do CAPS encolhe.'},
-    {nm:'Tomógrafos para os prontos-socorros',src:'descentralização de TC em emergências: menos transferências; benefício difuso entre grupos',cost:250,gain:5000,sh:[26,23,20,17,14],tipo:'infraestrutura',ev:'moderada',profile:[.5,.5],story:'Menos transferências no meio da noite para fazer uma tomografia de crânio.'},
+    {nm:'Tomógrafos para os prontos-socorros',src:'descentralização de TC em emergências: menos transferências; benefício difuso entre grupos',cost:250,gain:5000,sh:[26,23,20,17,14],tipo:'infraestrutura',ev:'moderada',profile:[.5,.5],addon:'periferia',story:'Menos transferências no meio da noite para fazer uma tomografia de crânio.'},
     {nm:'Check-up anual subsidiado',src:'check-ups gerais em adultos assintomáticos não reduzem mortalidade total nem cardiovascular (revisão Cochrane, Krogsbøll et al., 2019); quem os procura tende a ter maior renda e escolaridade',cost:80,gain:800,sh:[2,5,13,30,50],tipo:'prevenção',ev:'fraca',profile:[.5,.5],story:'Pacote de exames para quem procura. Quem procura, em geral, já cuida da saúde.'},
     {nm:'Terapia gênica para doença rara',src:'terapias gênicas com preço muito acima dos limiares; CONITEC usa limiar triplo (R$ 120 mil/QALY) para doenças raras',cost:500,gain:1500,sh:[15,18,20,22,25],tipo:'tratamento',ev:'fraca',profile:[.5,.5],story:'Vinte e cinco famílias, um tratamento transformador, um preço que paga um hospital inteiro.'},
     {nm:'Saneamento e vigilância de arboviroses',src:'saneamento e controle vetorial: efeito em dengue, diarreia e leptospirose, concentrado em áreas de ocupação (OMS; literatura nacional)',cost:260,gain:6000,sh:[40,28,17,10,5],tipo:'infraestrutura',ev:'forte',profile:[.2,.3,.3,.2],tags:['aps','vig'],story:'Esgoto, água e agentes de endemias nas áreas de ocupação. Ninguém inaugura, mas a dengue cai.'},
     {nm:'Transporte sanitário para consultas',src:'faltas a consultas e tratamento oncológico ligadas a custo de transporte; programas de transporte sanitário eletivo',cost:70,gain:2500,sh:[45,28,15,8,4],tipo:'gestão',ev:'moderada',profile:[.6,.4],tags:['aps'],story:'Dona Francisca faltou a três consultas de oncologia. Não tinha dinheiro para a passagem.'},
-    {nm:'Cirurgia bariátrica',src:'bariátrica custo-efetiva no longo prazo (diabetes, hipertensão), com retorno em anos; fila do SUS longa',cost:240,gain:4000,sh:[18,22,22,20,18],tipo:'tratamento',ev:'moderada',profile:[.1,.3,.3,.3],story:'Fila de anos; os efeitos aparecem numa década.'},
+    {nm:'Cirurgia bariátrica',src:'bariátrica custo-efetiva no longo prazo (diabetes, hipertensão), com retorno em anos; fila do SUS longa',cost:240,gain:4000,sh:[18,22,22,20,18],tipo:'tratamento',ev:'moderada',profile:[.1,.3,.3,.3],addon:'criterio',story:'Fila de anos; os efeitos aparecem numa década.'},
     {nm:'Campanha de mídia sobre alimentação',src:'campanhas de mídia isoladas têm efeito pequeno e maior em grupos de maior escolaridade (revisões de intervenções populacionais)',cost:60,gain:900,sh:[10,15,20,25,30],tipo:'prevenção',ev:'fraca',profile:[1],story:'Bonita, premiada, e quem muda o hábito é quem já podia escolher o que comer.'},
-    {nm:'Pré-natal ampliado',src:'pré-natal adequado (6 a 7 consultas ou mais) e mortalidade materna e neonatal; cobertura menor nos grupos de menor renda',cost:130,gain:6000,sh:[36,27,19,12,6],tipo:'prevenção',ev:'forte',profile:[.4,.3,.3],tags:['aps'],story:'Sete consultas em vez de três, com exames na própria UBS. Menos prematuros, menos mortes maternas.'},
+    {nm:'Pré-natal ampliado',src:'pré-natal adequado (6 a 7 consultas ou mais) e mortalidade materna e neonatal; cobertura menor nos grupos de menor renda',cost:130,gain:6000,sh:[36,27,19,12,6],tipo:'prevenção',ev:'forte',profile:[.4,.3,.3],tags:['aps'],addon:'busca',story:'Sete consultas em vez de três, com exames na própria UBS. Menos prematuros, menos mortes maternas.'},
     {nm:'Central inteligente de regulação',src:'regulação por critério clínico (ex.: SISREG, protocolos de priorização): mesma oferta, distribuição mais justa',cost:100,gain:4000,sh:[28,24,20,16,12],tipo:'gestão',ev:'moderada',profile:[.6,.4],story:'A mesma quantidade de leitos e de consultas, distribuída por critério clínico e não por quem conhece alguém.'},
-    {nm:'Novas vagas de hemodiálise',src:'déficit regional de vagas de diálise no SUS; deslocamentos longos para sessões',cost:280,gain:4500,sh:[30,25,20,15,10],tipo:'tratamento',ev:'forte',profile:[.7,.3],story:'Quem precisa dialisar três vezes por semana hoje viaja duas horas para cada sessão.'},
+    {nm:'Novas vagas de hemodiálise',src:'déficit regional de vagas de diálise no SUS; deslocamentos longos para sessões',cost:280,gain:4500,sh:[30,25,20,15,10],tipo:'tratamento',ev:'forte',profile:[.7,.3],addon:'periferia',story:'Quem precisa dialisar três vezes por semana hoje viaja duas horas para cada sessão.'},
     {nm:'Aplicativo de bem-estar',src:'apps de bem-estar: evidência fraca de efeito em desfechos de saúde; adoção maior em grupos de maior renda',cost:40,gain:400,sh:[5,10,20,30,35],tipo:'gestão',ev:'fraca',profile:[1],story:'Passos, sono e meditação. Baixado por quem tem celular bom e tempo para ele.'},
-    {nm:'Ampliar o SAMU',src:'tempo-resposta do SAMU e sobrevida em infarto, AVC e trauma; bases na periferia reduzem o tempo onde ele é maior',cost:200,gain:4500,sh:[30,25,20,15,10],tipo:'infraestrutura',ev:'forte',profile:[1],story:'Mais duas bases de ambulância na periferia. O infarto que hoje chega em 50 minutos passa a chegar em 18.'},
-    {nm:'Mutirão de catarata',src:'cirurgia de catarata está entre as intervenções de melhor custo-efetividade em saúde (Lansingh et al., 2007; OMS); a fila no SUS é longa e atinge sobretudo idosos de baixa renda',cost:80,gain:2200,sh:[28,25,20,15,12],tipo:'tratamento',ev:'forte',profile:[1],story:'Seu Benedito, 74, não lê mais o letreiro do ônibus. A cirurgia leva vinte minutos; a fila, quatro anos.'},
+    {nm:'Ampliar o SAMU',src:'tempo-resposta do SAMU e sobrevida em infarto, AVC e trauma; bases na periferia reduzem o tempo onde ele é maior',cost:200,gain:4500,sh:[30,25,20,15,10],tipo:'infraestrutura',ev:'forte',profile:[1],addon:'periferia',story:'Mais duas bases de ambulância na periferia. O infarto que hoje chega em 50 minutos passa a chegar em 18.'},
+    {nm:'Mutirão de catarata',src:'cirurgia de catarata está entre as intervenções de melhor custo-efetividade em saúde (Lansingh et al., 2007; OMS); a fila no SUS é longa e atinge sobretudo idosos de baixa renda',cost:80,gain:2200,sh:[28,25,20,15,12],tipo:'tratamento',ev:'forte',profile:[1],addon:'gratuito',story:'Seu Benedito, 74, não lê mais o letreiro do ônibus. A cirurgia leva vinte minutos; a fila, quatro anos.'},
     {nm:'Farmácia municipal gratuita',src:'a gratuidade de medicamentos para hipertensão e diabetes no Farmácia Popular aumentou o uso dos medicamentos (Emmerick et al., BMJ Open 2017)',cost:120,gain:3000,sh:[35,27,18,12,8],tipo:'gestão',ev:'moderada',profile:[.6,.4],tags:['aps'],story:'Remédio de pressão e de diabetes sem pagar nada e sem faltar na prateleira. Quem interrompia o tratamento por falta de dinheiro deixa de interromper.'}
   ];
   const MAINT=0.2; // infraestrutura gera custeio anual (fração do custo) até o fim do mandato
+  // Dilema: aparece antes do orçamento. Cada opção tem t (título), d (consequência com números), n (versão sem
+  // números, usada no modo difícil) e efeitos opcionais, aplicados em applyDilemma:
+  //   budget     R$ mi somados ao orçamento deste ano      gainQ/lossQ  QALYs por grupo, creditados agora
+  //   penalty    R$ mi a menos no ano seguinte (why: motivo exibido no aviso)
+  //   recurring  {amt, years, nm}: custeio anual a partir do ano seguinte
+  //   evalOn     liga a estimativa local de realização nos cards   erosion  fator permanente sobre a erosão
+  //   erosionTemp {f, years}: fator temporário sobre a erosão       negotiate  resultado sorteado (50%)
+  //   note       manchete do ano, se nenhum programa for financiado
   const DILEMMAS=[
     {id:'fila',nm:'A fila na primeira página',txt:'Um jornal publicou a lista de espera de cirurgias com nomes e tempos: 4 anos para hérnia, 3 para vesícula. A câmara convocou você para explicar.',
       opts:[{t:'Mutirão de fim de semana',n:'Resolve a fila mais visível agora, para todo mundo, e custa parte do orçamento deste ano.',d:'R$ 60 mi a menos no orçamento deste ano; 2.500 anos de vida saudável agora, distribuídos por igual.',budget:-60,gainQ:[500,500,500,500,500]},
@@ -942,7 +980,7 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
             {t:'Recusar',n:'Nada muda.',d:'Nada muda. O fabricante leva a oferta para a cidade vizinha.'}]},
     {id:'emenda',nm:'A emenda carimbada',txt:'Um deputado oferece R$ 150 milhões de emenda parlamentar, carimbados: só podem construir uma unidade de pronto-atendimento, e no bairro de classe alta onde ele tem votos. A emenda paga a obra; quem paga o funcionamento, todo ano, é a secretaria.',
       opts:[{t:'Aceitar a emenda',d:'1.200 anos de vida saudável, quase todos para quem tem mais, sem gastar o seu orçamento na obra. Custeio de R$ 25 mi por ano até o fim do mandato.',n:'Dinheiro de fora, saúde para quem já tem mais, e uma conta de custeio que fica com você.',gainQ:[60,120,240,360,420],recurring:{amt:25,years:99,nm:'UPA da emenda'}},
-            {t:'Negociar o endereço',d:'Propor a UPA num bairro da periferia. O deputado pode topar (1.800 anos, sobretudo para quem tem menos, custeio de R$ 25 mi por ano) ou se ofender e fazer campanha contra: R$ 60 mi a menos no ano que vem.',n:'Pode render uma unidade onde faz falta, ou irritar o deputado.',negotiate:true},
+            {t:'Negociar o endereço',d:'Propor a UPA num bairro da periferia. O deputado pode topar (1.800 anos, sobretudo para quem tem menos, custeio de R$ 25 mi por ano) ou se ofender e fazer campanha contra: R$ 60 mi a menos no ano que vem.',n:'Pode render uma unidade onde faz falta, ou irritar o deputado.',negotiate:{gainQ:[900,480,240,120,60],amt:25,penalty:60}},
             {t:'Recusar',d:'A emenda vai para outra pasta. Nada muda na saúde.',n:'Nada muda na saúde.'}]},
     {id:'avaliacao',nm:'A equipe de avaliação',txt:'Uma universidade propõe montar uma equipe de avaliação de tecnologias na secretaria. Custa R$ 30 milhões, uma vez.',
       opts:[{t:'Contratar a equipe',n:'Custa um pouco agora; depois, você passa a saber quanto as propostas duvidosas rendem de verdade.',d:'A partir do ano que vem, as propostas de evidência moderada ou fraca chegam à mesa com uma estimativa local de quanto vão render de fato.',budget:-30,evalOn:true},
@@ -954,13 +992,18 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
       opts:[{t:'Conceder o reajuste',n:'Custa todo ano até o fim; a rotina para de perder terreno tão rápido.',d:'R$ 30 mi por ano até o fim do mandato. A rotina para de perder terreno tão rápido: a erosão anual cai pela metade.',recurring:{amt:30,years:99,nm:'reajuste da atenção básica'},erosion:0.5},
             {t:'Negar',n:'Sem custo, mas as equipes reduzem as visitas por um tempo.',d:'Sem custo. Mas as equipes reduzem as visitas: a erosão da rotina aumenta 30% nos próximos dois anos.',erosionTemp:{f:1.3,years:2}}]}
   ];
+  // fração do ganho prometido que de fato aparece, sorteada uniformemente na faixa da força da evidência
   const EVSPREAD={forte:[0.9,1.1],moderada:[0.7,1.2],fraca:[0.3,1.3]};
+  // Evento do ano (no máximo um, em ano sem dilema). Campos opcionais: budget(b) transforma o orçamento;
+  // forced: card pago obrigatoriamente; extra: card a mais na mesa; ensureTag: garante um card com a tag;
+  // damage: QALYs perdidos por grupo, pela metade se algum card com mitigTag foi financiado antes;
+  // oc: substitui a repartição do custo de oportunidade neste ano.
   const EVENTS={
     crise:{nm:'Crise fiscal',good:false,txt:'A arrecadação caiu e a prefeitura cortou 35% do orçamento de novos programas este ano.',budget:b=>Math.round(b*0.65)},
     judicial:{nm:'Judicialização',good:false,txt:'Uma decisão judicial obriga a secretaria a comprar um medicamento de altíssimo custo para 40 pacientes. R$ 250 milhões saem do orçamento antes de qualquer escolha, com ganho concentrado em quem teve acesso à Justiça.',forced:{nm:'Medicamento judicializado',cost:250,gain:1200,sh:[5,10,20,30,35],tipo:'tratamento',ev:'moderada',profile:[.6,.4],story:'Obrigatório por decisão judicial.'}},
     epidemia:{nm:'Epidemia de dengue',good:false,txt:'Um verão chuvoso trouxe a pior epidemia de dengue em anos. Os bairros sem saneamento são os mais atingidos.',damage:[1500,900,400,150,50],mitigTag:'vig',mitigTxt:'Como você financiou saneamento e vigilância antes, o estrago foi metade do que seria.'},
     transfer:{nm:'Transferência federal',good:true,txt:'O Ministério da Saúde repassou R$ 300 milhões extras, condicionados a programas de atenção primária. Pelo menos uma proposta desse tipo está na mesa.',budget:b=>b+300,ensureTag:'aps'},
-    lobby:{nm:'Pressão da indústria',good:false,txt:'Uma empresa farmacêutica patrocinou um congresso, a imprensa cobre o "tratamento revolucionário" e a câmara de vereadores quer saber por que ele ainda não chegou. Há uma quarta proposta na mesa.',extra:{nm:'Tratamento "revolucionário"',cost:450,gain:2500,sh:[8,12,20,28,32],tipo:'tratamento',ev:'fraca',profile:[.5,.5],story:'Resultados promissores em um estudo pequeno, financiado pelo fabricante.'}},
+    lobby:{nm:'Pressão da indústria',good:false,txt:'Uma empresa farmacêutica patrocinou um congresso, a imprensa cobre o "tratamento revolucionário" e a câmara de vereadores quer saber por que ele ainda não chegou. Há uma proposta a mais na mesa.',extra:{nm:'Tratamento "revolucionário"',cost:450,gain:2500,sh:[8,12,20,28,32],tipo:'tratamento',ev:'fraca',profile:[.5,.5],story:'Resultados promissores em um estudo pequeno, financiado pelo fabricante.'}},
     greve:{nm:'Greve nos hospitais',good:false,txt:'Dois meses de greve nos hospitais públicos. Este ano, cada real retirado da rotina pesa ainda mais sobre quem só tem o SUS.',oc:[40,30,15,10,5]}
   };
   // gerador com semente (mulberry32), para partidas reproduzíveis
@@ -969,14 +1012,17 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
   function shuffle(a,r){for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
   // tela inicial
-  $('gSeed').value=Math.floor(Math.random()*9000)+1000;
-  document.querySelectorAll('#gStart .chip').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('#gStart .chip').forEach(x=>x.setAttribute('aria-pressed','false'));c.setAttribute('aria-pressed','true');cfg.years=+c.dataset.years;}));
-  $('gEps').addEventListener('input',e=>{cfg.eps=+e.target.value;$('gEpsVal').textContent=fmt1.format(cfg.eps);});
-  document.querySelectorAll('#cityPick .chip').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('#cityPick .chip').forEach(x=>x.setAttribute('aria-pressed','false'));c.setAttribute('aria-pressed','true');cfg.city=c.dataset.city;$('cityDesc').textContent=CITIES[cfg.city].desc;}));
-  $('cityDesc').textContent=CITIES.capital.desc;
+  const newSeed=()=>Math.floor(Math.random()*9000)+1000;
+  $('gSeed').value=newSeed();
+  // cada grupo de chips é exclusivo só entre os próprios botões
+  function chipGroup(id,onPick){const cs=[...$(id).querySelectorAll('.chip')];cs.forEach(c=>c.addEventListener('click',()=>{press(cs,c);onPick(c.dataset);}));}
   const DIFFD={facil:'Os cards vêm mastigados: custo por ano ganho, limiar, faixa de evidência, uma dica de leitura e a estimativa da equipe de avaliação desde o início. Os dilemas mostram os números.',normal:'Os cards trazem custo por ano ganho, limiar e faixa de evidência. Os dilemas mostram os números.',dificil:'Os cards trazem só preço, promessa, para quem vai e a palavra sobre a evidência. Sem limiar, sem custo por ano ganho. Os dilemas descrevem as consequências sem números: você estima.'};
+  chipGroup('yearsPick',d=>{cfg.years=+d.years;});
+  chipGroup('cityPick',d=>{cfg.city=d.city;$('cityDesc').textContent=CITIES[d.city].desc;});
+  chipGroup('diffPick',d=>{cfg.diff=d.diff;$('diffDesc').textContent=DIFFD[d.diff];});
+  $('cityDesc').textContent=CITIES.capital.desc;
   $('diffDesc').textContent=DIFFD.normal;
-  document.querySelectorAll('#diffPick .chip').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('#diffPick .chip').forEach(x=>x.setAttribute('aria-pressed','false'));c.setAttribute('aria-pressed','true');cfg.diff=c.dataset.diff;$('diffDesc').textContent=DIFFD[cfg.diff];}));
+  $('gEps').addEventListener('input',e=>{cfg.eps=+e.target.value;$('gEpsVal').textContent=fmt1.format(cfg.eps);});
   $('gBegin').addEventListener('click',()=>{cfg.tutorial=$('gTut').checked;cfg.showMath=$('gMath').checked;CITY=CITIES[cfg.city];H0G=CITY.h0;EROSION=CITY.erosion;cfg.seed=Math.max(1,Math.min(9999,Math.floor(+$('gSeed').value)||1));$('gSeed').value=cfg.seed;newGame();$('gStart').hidden=true;$('gPlay').hidden=false;window.scrollTo(0,0);});
 
   function newGame(){
@@ -989,13 +1035,23 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     const dYears=cfg.tutorial?[2,...pick(nDi-1,new Set([2]))]:pick(nDi,new Set());
     const evYears=pick(nEv,new Set(dYears));
     const sched={};evYears.forEach((y,i)=>sched[y]=evKeys[i]);
+    // Estado da partida. Principais campos:
+    //   r: gerador sorteado pela semente (a ordem das chamadas define a partida)   year: 1..cfg.years
+    //   cum: saldo acumulado de QALYs por grupo   pending: {ano: QALYs por grupo} já contratados para anos futuros
+    //   hand/chosen/active: cards na mesa, índices marcados, índices com complemento ligado   f: realização sorteada por card
+    //   funded: tudo o que foi financiado   recurring: custeios {amt, until, nm}   penalty: corte no próximo orçamento
+    //   hist/years: série da distância pobres–ricos e saldo de cada ano (gráficos)   log/byYear: jornal, jurados e resumo final
     G={r,year:1,deck:shuffle(DECK.slice(),r),sched,cum:Array(N).fill(0),hist:[0],funded:[],pending:{},ev:null,hand:[],chosen:new Set(),active:new Set(),src:'ab',closed:false,log:[],byYear:[],penalty:0,penaltyWhy:'',lowYears:0,recurring:[],evalOn:false,erosionF:1,erosionTemp:null,dilemma:null,dsched:{},f:[],years:[]};
-    const dk=shuffle(DILEMMAS.slice(),r);dYears.forEach((y,i)=>G.dsched[y]=dk[i]);
-    G.tutAck=new Set();if(cfg.tutorial){G.dsched[2]=DILEMMAS.find(d=>d.id==='avaliacao');}
+    const dk=shuffle(DILEMMAS.slice(),r);
+    // com tutorial, o ano 2 (dYears[0]) é sempre a equipe de avaliação: troca de lugar no baralho para ela não repetir
+    if(cfg.tutorial){const k=dk.findIndex(d=>d.id==='avaliacao');[dk[0],dk[k]]=[dk[k],dk[0]];}
+    dYears.forEach((y,i)=>G.dsched[y]=dk[i]);
+    G.tutAck=new Set();
     if(cfg.diff==='facil')G.evalOn=true;
     $('gRTitle').textContent='Sua população';
     dealYear();renderYear();renderPop();
   }
+  // abre o ano: evento, orçamento (penalidades e custeios descontados), dilema e quatro cards (mais o extra do evento)
   function dealYear(){
     const evk=G.sched[G.year];G.ev=evk?EVENTS[evk]:null;G.chosen=new Set();G.active=new Set();G.src='ab';G.closed=false;
     let budget=BASE_BUDGET;if(G.ev&&G.ev.budget)budget=G.ev.budget(budget);
@@ -1017,30 +1073,33 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
   const cardCost=(c,i)=>{const a=addonOf(c);return Math.round(c.cost*(a&&G.active.has(i)?a.cost:1));};
   const yrSpent=()=>G.hand.reduce((s,c,i)=>s+(G.chosen.has(i)?cardCost(c,i):0),0)+(G.forced?G.forced.cost:0);
   function effShares(sh,a){const s=sh.reduce((x,y)=>x+y,0);const [w,ref]=a.mix;return sh.map((v,i)=>(1-w)*100*v/s+w*ref[i]);}
-  function tilt(sh){const t=(sh[0]+sh[1])-(sh[3]+sh[4]);return t>10?'favorece os mais pobres':t<-10?'favorece os mais ricos':'distribuído por igual';}
+  // inclinação: pontos percentuais dos dois grupos mais pobres menos os dos dois mais ricos (sh soma 100)
+  const lean=sh=>(sh[0]+sh[1])-(sh[3]+sh[4]);
+  function tilt(sh){const t=lean(sh);return t>10?'favorece os mais pobres':t<-10?'favorece os mais ricos':'distribuído por igual';}
   function tip(c,sh,icer){
-    const cheap=icer<=GL*0.5,ok=icer<=GL,poor=(sh[0]+sh[1])-(sh[3]+sh[4])>10,late=c.profile.length>=3,yrsLeft=cfg.years-G.year+1;
+    const cheap=icer<=GL*0.5,ok=icer<=GL,poor=lean(sh)>10,late=c.profile.length>=3,yrsLeft=cfg.years-G.year+1;
     const parts=[];
     parts.push(cheap?'rende muito por real gasto':ok?'rende mais do que custa':'custa mais do que rende em saúde total');
-    if(poor)parts.push('e favorece os mais pobres: a Ouvidora gosta');else if((sh[0]+sh[1])-(sh[3]+sh[4])<-10)parts.push('mas favorece os mais ricos: a Ouvidora não gosta');
+    if(poor)parts.push('e favorece os mais pobres: a Ouvidora gosta');else if(lean(sh)<-10)parts.push('mas favorece os mais ricos: a Ouvidora não gosta');
     if(c.ev==='fraca')parts.push('evidência fraca: pode decepcionar');
     if(late&&c.profile.length>yrsLeft)parts.push('boa parte do ganho só aparece depois do mandato (conta no Legado)');
     return parts.join('; ')+'.';
   }
+  // card da mesa; locked = card obrigatório (judicialização), sem caixa nem complemento
   function cardHtml(c,i,locked){
-    const icer=c.cost*1e6/c.gain, ok=icer<=GL, yrs=c.profile.length;
-    const ad=locked?null:addonOf(c);const sh=(ad&&G.active.has(i))?effShares(c.sh,ad):c.sh;const sum=sh.reduce((a,b)=>a+b,0), m=Math.max(...sh);
+    const icer=c.cost*1e6/c.gain, ok=icer<=GL, yrs=c.profile.length, [evLo,evHi]=EVSPREAD[c.ev];
+    const ad=locked?null:addonOf(c);const sh=(ad&&G.active.has(i))?effShares(c.sh,ad):c.sh;const tot=sum(sh), m=Math.max(...sh);
     const mini='<span class="mini" aria-hidden="true">'+sh.map(v=>'<i style="height:'+(2+10*v/m)+'px"></i>').join('')+'</span>';
     return '<label class="card'+(locked?' locked':(G.chosen.has(i)?' on':''))+'"'+(locked?'':' for="hc'+i+'"')+'>'+
       '<input type="checkbox" '+(locked?'checked disabled':'id="hc'+i+'" '+(G.chosen.has(i)?'checked':'')+(G.closed?' disabled':''))+'>'+
       '<span class="ico">'+(ICON[c.tipo]||'')+'</span><span class="nm">'+c.nm+'</span><span class="cost">R$ '+(locked?c.cost:cardCost(c,i))+' mi</span>'+
       '<span class="story">'+c.story+'</span>'+
       '<span class="meta">Promete <b>'+fmt.format(c.gain)+'</b> anos de vida saudável · '+tilt(sh)+' '+mini+(cfg.diff==='dificil'?'':' · R$ '+fmt.format(Math.round(icer/1000))+' mil por ano ganho <span class="badge '+(ok?'ok':'no')+'" style="margin:0">'+(ok?'abaixo':'acima')+' do limiar</span>')+'</span>'+
-      '<span class="meta">'+c.tipo+(c.tipo==='infraestrutura'?' (custeio de R$ '+Math.round(c.cost*MAINT)+' mi por ano até o fim do mandato'+(CITY.infra>1?'; nesta cidade rende '+Math.round((CITY.infra-1)*100)+'% a mais':'')+')':'')+' · resultados '+(yrs===1?'no mesmo ano':'ao longo de '+yrs+' anos')+' · evidência <b>'+c.ev+'</b>'+(cfg.diff==='dificil'?'':(c.ev==='fraca'?' (pode render de 30% a 130% do prometido)':c.ev==='moderada'?' (70% a 120%)':' (90% a 110%)'))+(G.evalOn&&!locked&&c.ev!=='forte'?' · <b>avaliação local estima ~'+Math.round(G.f[i]*100)+'% do prometido</b>':'')+'</span>'+
+      '<span class="meta">'+c.tipo+(c.tipo==='infraestrutura'?' (custeio de R$ '+Math.round(c.cost*MAINT)+' mi por ano até o fim do mandato'+(CITY.infra>1?'; nesta cidade rende '+Math.round((CITY.infra-1)*100)+'% a mais':'')+')':'')+' · resultados '+(yrs===1?'no mesmo ano':'ao longo de '+yrs+' anos')+' · evidência <b>'+c.ev+'</b>'+(cfg.diff==='dificil'?'':' ('+(c.ev==='fraca'?'pode render de ':'')+Math.round(evLo*100)+'% a '+Math.round(evHi*100)+'%'+(c.ev==='fraca'?' do prometido':'')+')')+(G.evalOn&&!locked&&c.ev!=='forte'?' · <b>avaliação local estima ~'+Math.round(G.f[i]*100)+'% do prometido</b>':'')+'</span>'+
       (cfg.diff==='facil'&&!locked?'<span class="meta" style="color:var(--accent)"><b>Dica:</b> '+tip(c,sh,icer)+'</span>':'')+
       (locked||!G.chosen.has(i)||!ad?'':'<span class="meta act"><input type="checkbox" id="ac'+i+'" '+(G.active.has(i)?'checked':'')+(G.closed?' disabled':'')+'> <label for="ac'+i+'"><b>'+ad.t+'</b>: '+ad.d+'</label></span>')+
       (c.src?'<details class="meta" style="grid-column:2"><summary style="font-size:.8rem;font-weight:600">fonte</summary><span style="font-style:italic">Inspirado em: '+c.src+'. Os números do card são ilustrativos.</span></details>':'')+
-      (cfg.diff==='dificil'?'':'<details class="meta" style="grid-column:2"><summary style="font-size:.8rem;font-weight:600">por grupo</summary>'+sh.map((v,k)=>QS[k].toLowerCase()+' '+fmt.format(Math.round(c.gain*v/sum))).join(' · ')+'</details>')+
+      (cfg.diff==='dificil'?'':'<details class="meta" style="grid-column:2"><summary style="font-size:.8rem;font-weight:600">por grupo</summary>'+sh.map((v,k)=>QL[k].toLowerCase()+' '+fmt.format(Math.round(c.gain*v/tot))).join(' · ')+'</details>')+
       '</label>';
   }
   const ICON={
@@ -1063,10 +1122,9 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
   function city(){
     const days=G.cum.map(x=>x/POP*365);
     const col=d=>d>=20?'var(--good)':d>=5?'var(--accent)':d>-5?'var(--muted)':d>-20?'var(--loss)':'var(--bad)';
-    const nms=['Mais pobres','Pobres','Do meio','Ricos','Mais ricos'];
     return '<div class="citylegend"><span><i style="background:var(--good)"></i>ganhou muito</span><span><i style="background:var(--accent)"></i>ganhou</span><span><i style="background:var(--muted)"></i>como estava</span><span><i style="background:var(--loss)"></i>perdeu</span><span><i style="background:var(--bad)"></i>perdeu muito</span></div>'+
       '<div class="city">'+days.map((d,q)=>{const fill=col(d);let p='';for(let k=0;k<20;k++){const x=6+(k%5)*18,y=6+Math.floor(k/5)*20;p+='<circle cx="'+(x+6)+'" cy="'+(y+4)+'" r="3.6" fill="'+fill+'"/><path d="M'+(x+1)+' '+(y+18)+'v-5q0-4 5-4t5 4v5z" fill="'+fill+'"/>';}
-        return '<div class="hood"><svg viewBox="0 0 96 86" role="img" aria-label="'+nms[q]+': '+sgn1(d)+' dias por pessoa">'+p+'</svg><span class="nm">'+nms[q]+'</span><span class="d" style="color:'+fill+'">'+sgn1(d)+' d</span></div>';}).join('')+'</div>';
+        return '<div class="hood"><svg viewBox="0 0 96 86" role="img" aria-label="'+QL[q]+': '+sgn1(d)+' dias por pessoa">'+p+'</svg><span class="nm">'+QL[q]+'</span><span class="d" style="color:'+fill+'">'+sgn1(d)+' d</span></div>';}).join('')+'</div>';
   }
   const tut=()=>cfg.tutorial&&G.year<=2;
   function coach(){
@@ -1094,20 +1152,19 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     const L=$('gameLeft');const spent=yrSpent(),over=spent>G.budget;
     let h='<div class="tl" aria-label="Anos do mandato">'+Array.from({length:cfg.years},(_,k)=>{const st=k<G.years.length?(G.years[k]>=0?'pos':'neg'):(k===G.year-1?'cur':'');return '<span class="'+st+'" title="'+(Y0+k)+'"></span>';}).join('')+'</div>';
     h+='<div class="yr"><span class="y">'+(Y0+G.year-1)+'</span><span class="of">ano '+G.year+' de '+cfg.years+' · orçamento R$ '+fmt.format(G.budget)+' mi · partida nº '+cfg.seed+' · '+CITY.nm+'</span></div>';
-    if(G.maintTxt)h+='<p class="hint" style="font-family:var(--display);font-size:.85rem;color:var(--muted);margin:0 0 .5rem">'+G.maintTxt+'</p>';
+    if(G.maintTxt)h+='<p class="hint" style="margin:0 0 .5rem">'+G.maintTxt+'</p>';
     if(!G.dilemmaDone){
       const D=G.dilemma;
       h+=coach();
       h+='<div class="event"><span class="ttl">Antes do orçamento</span><b class="hd">'+D.nm+'</b><p>'+D.txt+'</p></div><div class="qopt" style="grid-template-columns:1fr">'+D.opts.map((o,k)=>'<button class="qbtn" type="button" data-opt="'+k+'"><b style="font-family:var(--display)">'+o.t+'</b><br><span class="who">'+(cfg.diff==='dificil'?(o.n||o.d):o.d)+'</span></button>').join('')+'</div>';
       L.innerHTML=h;
-      document.querySelectorAll('[data-opt]').forEach(b=>b.addEventListener('click',()=>applyDilemma(+b.dataset.opt)));
       return;
     }
     h+=coach();
     const cut=h.length;
     if(G.ev)h+='<div class="event'+(G.ev.good?' good':'')+'"><span class="ttl">Este ano</span><b class="hd">'+G.ev.nm+'</b><p>'+G.ev.txt+'</p></div>';
     (G.notes||[]).forEach(n=>{h+='<div class="event"><b class="hd">Aviso</b><p>'+n+'</p></div>';});
-    h+='<p class="hint" style="font-family:var(--display);font-size:.9rem;color:var(--muted);margin:0 0 .6rem">Propostas na mesa. Marque as que vai financiar; em cada uma marcada, decida se vai com busca ativa.</p>';
+    h+='<p class="hint" style="font-size:.9rem;margin:0 0 .6rem">Propostas na mesa. Marque as que vai financiar; em algumas, marcar abre uma escolha extra sobre como fazer.</p>';
     h+='<div class="cards">';
     if(G.forced)h+=cardHtml(G.forced,-1,true);
     G.hand.forEach((c,i)=>{h+=cardHtml(c,i,false);});
@@ -1124,13 +1181,31 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
       h+='<div><button class="btn" id="nextYear" type="button">'+(G.year<cfg.years?'Ir para '+(Y0+G.year):'Ver o retrato de '+(Y0+cfg.years))+'</button></div>';
     }
     L.innerHTML=h;
-    const ta=$('tutAck');if(ta)ta.addEventListener('click',()=>{G.tutAck.add(ta.dataset.k);renderYear();});
-    G.hand.forEach((c,i)=>{const el=$('hc'+i);if(el)el.addEventListener('change',e=>{if(e.target.checked)G.chosen.add(i);else{G.chosen.delete(i);G.active.delete(i);}renderYear();});
-      const ac=$('ac'+i);if(ac)ac.addEventListener('change',e=>{if(e.target.checked)G.active.add(i);else G.active.delete(i);renderYear();});});
-    document.querySelectorAll('[data-src]').forEach(b=>b.addEventListener('click',()=>{G.src=b.dataset.src;renderYear();}));
-    const cb=$('closeYear');if(cb)cb.addEventListener('click',closeYear);
-    const nb=$('nextYear');if(nb)nb.addEventListener('click',()=>{if(G.year<cfg.years){G.year++;dealYear();renderYear();renderPop();window.scrollTo({top:$('gPlay').offsetTop,behavior:'smooth'});}else renderFinal();});
   }
+  function nextYear(){
+    if(G.year<cfg.years){G.year++;dealYear();renderYear();renderPop();window.scrollTo({top:$('gPlay').offsetTop,behavior:'smooth'});}
+    else renderFinal();
+  }
+  // o painel esquerdo é redesenhado inteiro a cada ação, então os eventos são tratados por delegação
+  $('gameLeft').addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    const d=b.dataset;
+    if(d.opt!==undefined)applyDilemma(+d.opt);
+    else if(d.src){G.src=d.src;renderYear();}
+    else if(b.id==='tutAck'){G.tutAck.add(d.k);renderYear();}
+    else if(b.id==='closeYear')closeYear();
+    else if(b.id==='nextYear')nextYear();
+    else if(b.id==='copyShare')copyShare(b);
+    else if(b.id==='replay'){$('gPlay').hidden=true;$('gStart').hidden=false;$('gSeed').value=newSeed();window.scrollTo(0,0);}
+  });
+  $('gameLeft').addEventListener('change',e=>{
+    const m=/^(hc|ac)(\d+)$/.exec(e.target.id);if(!m)return;
+    const i=+m[2],on=e.target.checked;
+    if(m[1]==='hc'){if(on)G.chosen.add(i);else{G.chosen.delete(i);G.active.delete(i);}} // desmarcar o card desliga o complemento
+    else if(on)G.active.add(i);else G.active.delete(i);
+    renderYear();
+  });
+  // aplica a opção k do dilema do ano (efeitos documentados acima de DILEMMAS)
   function applyDilemma(k){
     const D=G.dilemma,o=D.opts[k];G.dilemmaChoice=k;G.dilemmaDone=true;
     if(o.budget)G.budget=Math.max(50,G.budget+o.budget);
@@ -1141,10 +1216,13 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     if(o.evalOn)G.evalOn=true;
     if(o.erosion)G.erosionF=o.erosion;
     if(o.erosionTemp)G.erosionTemp={f:o.erosionTemp.f,until:G.year+o.erosionTemp.years-1};
-    if(o.negotiate){const ok=G.r()<0.5;if(ok){[150,80,40,20,10].forEach((v,i)=>G.cum[i]+=v*12);G.recurring.push({amt:25,until:999,nm:'UPA negociada'});G.negTxt='O deputado topou: a UPA vai para a periferia.';}else{G.penalty+=60;G.penaltyWhy='o deputado não gostou da contraproposta da UPA e fez campanha contra a secretaria.';G.negTxt='O deputado se ofendeu e levou a emenda embora.';}}
+    if(o.negotiate){const ng=o.negotiate;if(G.r()<0.5){for(let i=0;i<N;i++)G.cum[i]+=ng.gainQ[i];G.recurring.push({amt:ng.amt,until:999,nm:'UPA negociada'});G.negTxt='O deputado topou: a UPA vai para a periferia.';}else{G.penalty+=ng.penalty;G.penaltyWhy='o deputado não gostou da contraproposta da UPA e fez campanha contra a secretaria.';G.negTxt='O deputado se ofendeu e levou a emenda embora.';}}
     G.dilemmaNote=o.note||'';G.dilemmaPick={nm:D.nm,opt:o.t+(G.negTxt?' ('+G.negTxt+')':'')};
     renderYear();renderPop();
   }
+  // fecha o ano: sorteia a realização dos cards, agenda os ganhos (profile), cobra o custo de oportunidade e a erosão,
+  // aplica penalidades e o evento, e registra o jornal, os jurados e a planilha da DCEA
+  const pendingTotal=()=>Object.values(G.pending).reduce((s,a)=>s+sum(a),0);
   function closeYear(){
     const negTxt=G.negTxt||'';G.negTxt='';
     const picks=G.hand.map((c,i)=>{if(!G.chosen.has(i))return null;const a=addonOf(c);const on=a&&G.active.has(i);return Object.assign({},c,{_f:G.f[i],cost:cardCost(c,i),gain:Math.round(c.gain*(on?a.gain:1)),sh:on?effShares(c.sh,a):c.sh,nm:c.nm+(on?' ('+a.t+')':'')});}).filter(Boolean);
@@ -1153,9 +1231,9 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     const chosenN=picks.length-(G.forced?1:0);
     // realização (evidência) e agendamento dos ganhos no tempo
     const realTxt=[];
-    picks.forEach(c=>{const f=c._f*(c.tipo==='infraestrutura'?CITY.infra:1);const sum=c.sh.reduce((a,b)=>a+b,0);
+    picks.forEach(c=>{const f=c._f*(c.tipo==='infraestrutura'?CITY.infra:1);const tot=sum(c.sh);
       if(c.tipo==='infraestrutura')G.recurring.push({amt:Math.round(c.cost*MAINT),until:999,nm:lc(plain(c.nm))});
-      c.profile.forEach((p,k)=>{const yr=G.year+k;if(!G.pending[yr])G.pending[yr]=Array(N).fill(0);for(let i=0;i<N;i++)G.pending[yr][i]+=c.gain*f*p*c.sh[i]/sum;});
+      c.profile.forEach((p,k)=>{const yr=G.year+k;if(!G.pending[yr])G.pending[yr]=Array(N).fill(0);for(let i=0;i<N;i++)G.pending[yr][i]+=c.gain*f*p*c.sh[i]/tot;});
       if(f<0.85)realTxt.push(c.nm+' rendeu só '+Math.round(f*100)+'% do prometido');else if(f>1.08)realTxt.push(c.nm+' rendeu '+Math.round(f*100)+'% do prometido');
       G.funded.push(Object.assign({},c,{year:G.year,f}));});
     const gainQ=(G.pending[G.year]||Array(N).fill(0)).slice();delete G.pending[G.year];
@@ -1167,12 +1245,12 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     if(G.ev&&G.ev.damage){const mit=G.funded.some(c=>(c.tags||[]).includes(G.ev.mitigTag)&&c.year<G.year);G.ev.damage.forEach((d,i)=>lossQ[i]+=mit?d/2:d);dmgTxt=mit?' '+G.ev.mitigTxt:' A epidemia tirou saúde sobretudo dos bairros mais pobres.';}
     const before=G.cum.slice();for(let i=0;i<N;i++)G.cum[i]+=gainQ[i]-lossQ[i];
     const hB=H0G.map((h,i)=>h+before[i]/POP),hA=H0G.map((h,i)=>h+G.cum[i]/POP);
-    const netY=gainQ.reduce((s,x)=>s+x,0)-lossQ.reduce((s,x)=>s+x,0);
+    const netY=sum(gainQ)-sum(lossQ);
     const ewY=(ede(hA,cfg.eps)-ede(hB,cfg.eps))*TOTAL;
     const gapB=(hB[4]-hB[0])*365,gapA=(hA[4]-hA[0])*365;
     G.hist.push(gapA-(H0G[4]-H0G[0])*365);
-    const future=Object.values(G.pending).reduce((s,a)=>s+a.reduce((x,y)=>x+y,0),0);
-    const c=chosenN===0?'dá de ombros: nenhum programa novo. Mas a cidade envelheceu e a rotina perdeu '+fmt.format(EROSION.reduce((a,b)=>a+b,0))+' anos de vida saudável sem reposição.':((netY>=0?'aprova o ano: '+sgn(Math.round(netY))+' anos de vida saudável realizados, já descontado o que saiu da rotina.':'reprova o ano: '+sgn(Math.round(netY))+' anos de vida saudável. O que você comprou rendeu menos, por enquanto, do que a rotina teria rendido.')+(future>0?' Lembra que há '+fmt.format(Math.round(future))+' anos de vida saudável contratados para os próximos anos.':''));
+    const future=pendingTotal();
+    const c=chosenN===0?'dá de ombros: nenhum programa novo. Mas a cidade envelheceu e a rotina perdeu '+fmt.format(sum(EROSION))+' anos de vida saudável sem reposição.':((netY>=0?'aprova o ano: '+sgn(Math.round(netY))+' anos de vida saudável realizados, já descontado o que saiu da rotina.':'reprova o ano: '+sgn(Math.round(netY))+' anos de vida saudável. O que você comprou rendeu menos, por enquanto, do que a rotina teria rendido.')+(future>0?' Lembra que há '+fmt.format(Math.round(future))+' anos de vida saudável contratados para os próximos anos.':''));
     const o=(gapA<gapB-0.05?'sorri: a distância entre os mais pobres e os mais ricos caiu '+fmt1.format(gapB-gapA)+' dias por pessoa.':gapA>gapB+0.05?'franze a testa: a distância entre os mais pobres e os mais ricos cresceu '+fmt1.format(gapA-gapB)+' dias por pessoa.':'anota: a distância entre os grupos ficou como estava.')+' No saldo ponderado (ε = '+fmt1.format(cfg.eps)+'), o ano foi '+(ewY>=0?'positivo':'negativo')+' ('+sgn(Math.round(ewY))+').'+dmgTxt;
     const head=headline(picks,chosenN);
     const e0=ede(hB,cfg.eps),e1=ede(hA,cfg.eps);
@@ -1205,7 +1283,7 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     const meses=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
     const mes=meses[Math.floor(G.r()*12)],dia=1+Math.floor(G.r()*28);
     const idx=shuffle(BREVES.map((_,i)=>i),G.r).slice(0,2);
-    const fund=picks.filter(p=>!p.nm.startsWith('Medicamento judicializado')).map(p=>plain(p.nm));
+    const fund=picks.filter(p=>!isForced(p)).map(p=>plain(p.nm));
     const lista=fund.length===1?fund[0]:fund.length===2?fund[0]+' e '+fund[1]:fund.slice(0,-1).join(', ')+' e '+fund[fund.length-1];
     const d=gapA-gapB;
     const lede=chosenN===0
@@ -1213,7 +1291,6 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
       :'A Secretaria Municipal de Saúde encerrou '+(Y0+G.year-1)+' com '+(fund.length===1?'um programa novo':fund.length+' programas novos')+' em funcionamento: '+lista+'. '+(netY>=0?'Segundo o balanço anual divulgado nesta semana, a cidade ganhou o equivalente a '+fmt.format(Math.round(netY))+' anos de vida saudável, já descontado o que deixou de ser feito nos serviços de rotina para pagar as novidades.':'O balanço anual divulgado nesta semana, porém, mostra saldo negativo: os serviços de rotina perderam mais do que os programas novos devolveram até agora, uma diferença de '+fmt.format(Math.abs(Math.round(netY)))+' anos de vida saudável.');
     const dist=Math.abs(d)<0.05?'A distância em saúde entre os bairros mais pobres e os mais ricos ficou praticamente onde estava.':d<0?'O relatório aponta ainda que a distância em saúde entre os bairros mais pobres e os mais ricos encolheu '+fmt1.format(-d)+' dias por pessoa no ano, o que a secretaria comemora e a oposição chama de "detalhe estatístico".':'O relatório aponta ainda que a distância em saúde entre os bairros mais pobres e os mais ricos aumentou '+fmt1.format(d)+' dias por pessoa no ano. Procurada, a secretaria afirmou que "o saldo total é o que importa"; o conselho municipal discorda.';
     const src=chosenN===0?'':(G.src==='ab'?' Para fechar a conta, a pasta reduziu o ritmo das unidades básicas, o que foi sentido sobretudo nos bairros que dependem do SUS.':G.src==='hosp'?' Para fechar a conta, cresceram as filas de cirurgia e de exames nos hospitais da rede.':' Para fechar a conta, a prefeitura remanejou verba de obras e eventos, decisão que já rende críticas na câmara.');
-    const real=(G.log.length?'':'');
     const evTxt=G.ev?'<b>'+G.ev.nm+'.</b> '+G.ev.txt:(G.dilemma?'<b>'+G.dilemma.nm+'.</b> '+G.dilemma.txt+' A secretaria optou por "'+G.dilemma.opts[G.dilemmaChoice].t.toLowerCase()+'".'+(negTxt?' '+negTxt:''):'<b>Ano sem sobressaltos.</b> Nenhuma epidemia, nenhuma decisão judicial e nenhuma visita inesperada à secretaria. O editor de saúde agradece.');
     return {dia,mes,lede,dist:dist+src,evTxt,breves:idx.map(i=>BREVES[i])};
   }
@@ -1225,20 +1302,22 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
       '<div class="cols"><p>'+P.lede+'</p><p>'+P.dist+'</p>'+realP+'<p>'+P.evTxt+'</p></div></div>'+
       '<aside class="side"><p class="kick">Breves</p>'+P.breves.map(b=>'<p><span class="bk">'+b.k+'</span>'+b.t+'</p>').join('')+'</aside></div></div>';
   }
+  // planilha da DCEA do ano (opção "Mostrar a conta")
   function mathHtml(y){
     if(!cfg.showMath||!y.math)return '';
     const m=y.math;const f=x=>fmt.format(Math.round(x)),f2=x=>fmt1.format(x);
-    const rows=QS.map((q,i)=>'<tr><td>'+q+'</td><td class="num">'+f2(m.hB[i])+'</td><td class="num">+'+f(m.gainQ[i])+'</td><td class="num">−'+f(m.lossQ[i]-m.eros[i])+'</td><td class="num">−'+f(m.eros[i])+'</td><td class="num">'+sgn(Math.round(m.gainQ[i]-m.lossQ[i]))+'</td><td class="num">'+f2(m.hA[i])+'</td></tr>').join('');
-    const tot='<tr style="font-weight:600"><td>Total</td><td class="num">'+f2(mean(m.hB))+' (média)</td><td class="num">+'+f(m.gainQ.reduce((a,b)=>a+b,0))+'</td><td class="num">−'+f(m.displaced)+'</td><td class="num">−'+f(m.eros.reduce((a,b)=>a+b,0))+'</td><td class="num">'+sgn(Math.round(y.netY))+'</td><td class="num">'+f2(mean(m.hA))+' (média)</td></tr>';
+    const rows=QL.map((q,i)=>'<tr><td>'+q+'</td><td class="num">'+f2(m.hB[i])+'</td><td class="num">+'+f(m.gainQ[i])+'</td><td class="num">−'+f(m.lossQ[i]-m.eros[i])+'</td><td class="num">−'+f(m.eros[i])+'</td><td class="num">'+sgn(Math.round(m.gainQ[i]-m.lossQ[i]))+'</td><td class="num">'+f2(m.hA[i])+'</td></tr>').join('');
+    const tot='<tr style="font-weight:600"><td>Total</td><td class="num">'+f2(mean(m.hB))+' (média)</td><td class="num">+'+f(sum(m.gainQ))+'</td><td class="num">−'+f(m.displaced)+'</td><td class="num">−'+f(sum(m.eros))+'</td><td class="num">'+sgn(Math.round(y.netY))+'</td><td class="num">'+f2(mean(m.hA))+' (média)</td></tr>';
     return '<details class="mathbox" open><summary>A conta deste ano (DCEA)</summary><div class="tablewrap"><table><thead><tr><th>Grupo</th><th class="num">Saúde antes (anos)</th><th class="num">Ganho realizado</th><th class="num">Custo de oportunidade</th><th class="num">Erosão da rotina</th><th class="num">Saldo</th><th class="num">Saúde depois (anos)</th></tr></thead><tbody>'+rows+tot+'</tbody></table></div>'+
-      '<p class="hint" style="font-family:var(--display);font-size:.85rem;margin:.6rem 0 0">Gasto: R$ '+f(m.spent)+' mi ÷ limiar R$ 40 mil = '+f(m.displaced)+' anos de vida saudável deslocados, repartidos '+m.ocd.join('/')+'% entre os grupos. Equivalente igualmente distribuído (ε = '+fmt1.format(cfg.eps)+'): '+m.e0.toFixed(4).replace('.',',')+' → '+m.e1.toFixed(4).replace('.',',')+' anos, × 1 milhão de pessoas = <b>'+sgn(Math.round(y.ewY))+'</b> (saldo ponderado). Índice de Atkinson: '+m.a0.toFixed(5).replace('.',',')+' → '+m.a1.toFixed(5).replace('.',',')+' ('+(m.a1<m.a0?'desigualdade menor':m.a1>m.a0?'desigualdade maior':'sem mudança')+'). Saldo simples do Contador: '+sgn(Math.round(y.netY))+'.</p></details>';
+      '<p class="hint" style="color:var(--fg);margin:.6rem 0 0">Gasto: R$ '+f(m.spent)+' mi ÷ limiar R$ '+fmt.format(GL/1000)+' mil = '+f(m.displaced)+' anos de vida saudável deslocados, repartidos '+m.ocd.join('/')+'% entre os grupos. Equivalente igualmente distribuído (ε = '+fmt1.format(cfg.eps)+'): '+dec(m.e0,4)+' → '+dec(m.e1,4)+' anos, × 1 milhão de pessoas = <b>'+sgn(Math.round(y.ewY))+'</b> (saldo ponderado). Índice de Atkinson: '+dec(m.a0,5)+' → '+dec(m.a1,5)+' ('+(m.a1<m.a0?'desigualdade menor':m.a1>m.a0?'desigualdade maior':'sem mudança')+'). Saldo simples do Contador: '+sgn(Math.round(y.netY))+'.</p></details>';
   }
-  const plain=n=>n.replace(/ \([^)]*\)$/,'');
+  const plain=n=>n.replace(/ \([^)]*\)$/,''); // tira o sufixo do complemento: "X (com busca ativa)" → "X"
+  const isForced=c=>c.nm===EVENTS.judicial.forced.nm; // card pago por decisão judicial, não por escolha
   const lc=n=>n.replace(/^(\S+)/,w=>/^[A-ZÁÉÍÓÚ]{2,}$/.test(w)?w:w.toLowerCase());
   function headline(picks,chosenN){
     if(G.dilemmaNote){const n=G.dilemmaNote;G.dilemmaNote='';if(chosenN===0)return n+' Secretaria fecha o ano sem programas novos.';}
     if(chosenN===0)return 'Secretaria fecha o ano sem programas novos; conselho municipal de saúde cobra explicações.';
-    const real=picks.filter(p=>!p.nm.startsWith('Medicamento judicializado'));
+    const real=picks.filter(p=>!isForced(p));
     const big=real.sort((a,b)=>b.cost-a.cost)[0];
     const weak=real.find(p=>p.ev==='fraca');
     if(weak)return 'Cidade aposta em "'+plain(weak.nm)+'"; especialistas pedem cautela com a evidência.';
@@ -1249,15 +1328,16 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
   }
   function popStats(){
     const h=H0G.map((x,i)=>x+G.cum[i]/POP);
-    const future=Object.values(G.pending).reduce((s,a)=>s+a.reduce((x,y)=>x+y,0),0);
-    return {h,net:G.cum.reduce((s,x)=>s+x,0),ew:(ede(h,cfg.eps)-ede(H0G,cfg.eps))*TOTAL,gap:h[4]-h[0],gap0:H0G[4]-H0G[0],future};
+    const future=pendingTotal();
+    return {h,net:sum(G.cum),ew:(ede(h,cfg.eps)-ede(H0G,cfg.eps))*TOTAL,gap:h[4]-h[0],gap0:H0G[4]-H0G[0],future};
   }
+  // painel direito: cidade, placar dos jurados e gráficos acumulados
   function renderPop(){
     const s=popStats();
     $('gCity').innerHTML=city();
     $('jC').textContent=sgn(Math.round(s.net));$('jO').textContent=sgn(Math.round(s.ew));$('jOs').textContent='saldo ponderado por equidade (ε = '+fmt1.format(cfg.eps)+')';
     $('jG').textContent=fmt1.format(s.gap)+' anos';const d=(s.gap-s.gap0)*365;$('jGs').textContent='era '+fmt1.format(s.gap0)+' em 2027 · '+(Math.abs(d)<0.05?'sem mudança':(d<0?'−':'+')+fmt1.format(Math.abs(d))+' dias por pessoa');
-    $('jL').textContent=sgn(Math.round(s.future));$('gPending').textContent='';
+    $('jL').textContent=sgn(Math.round(s.future));
     const W=640,H=200,L=56,R=16,T=14,B=30,cw=W-L-R,ch=H-T-B;
     const days=G.cum.map(x=>x/POP*365);const mx=Math.max(5,...days.map(Math.abs))*1.15;
     const y=v=>T+ch/2-(v/mx)*(ch/2),band=cw/N,bw=band*.5;
@@ -1267,7 +1347,7 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     for(let i=0;i<N;i++){const cx=L+band*(i+.5),v=days[i];
       sv+='<rect x="'+(cx-bw/2)+'" y="'+Math.min(y(0),y(v))+'" width="'+bw+'" height="'+Math.abs(y(0)-y(v))+'" fill="'+(v>=0?'var(--accent)':'var(--loss)')+'"/>';
       sv+='<text x="'+cx+'" y="'+(v>=0?y(v)-5:y(v)+13)+'" font-size="11" text-anchor="middle" class="mono">'+sgn1(v)+'</text>';
-      sv+='<text x="'+cx+'" y="'+(H-8)+'" font-size="11" text-anchor="middle" font-weight="600">'+QS[i]+'</text>';}
+      sv+='<text x="'+cx+'" y="'+(H-8)+'" font-size="11" text-anchor="middle" font-weight="600">'+QL[i]+'</text>';}
     sv+='</svg>';$('gBars').innerHTML=sv;
     const W2=640,H2=180,T2=14,B2=28,ch2=H2-T2-B2;
     const base=(H0G[4]-H0G[0])*365;const vals=G.hist.map(v=>base+v);const lo=Math.min(...vals,base)-2,hi=Math.max(...vals,base)+2;
@@ -1280,13 +1360,14 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     sl+='<circle cx="'+x2(vals.length-1)+'" cy="'+y2(vals[vals.length-1])+'" r="5" fill="var(--fg)" stroke="var(--card)" stroke-width="2"/></svg>';
     $('gLine').innerHTML=sl;
   }
+  // tela de fim de mandato: título, notas de 0 a 10, gráficos finais e resumo para compartilhar
   function renderFinal(){
     const s=popStats();const d=(s.gap-s.gap0)*365;const yEnd=Y0+cfg.years;
     const scale=cfg.years===10?30000:13000;
     const gC=Math.max(0,Math.min(10,s.net/scale*10)),gO=Math.max(0,Math.min(10,s.ew/scale*10)),gL=Math.max(0,Math.min(10,s.future/(scale*0.5)*10));
     const thrN=cfg.years===10?8000:3500,thrD=cfg.years===10?5:2.5;
     let title,txt;
-    if(G.funded.filter(c=>!c.nm.startsWith('Medicamento judicializado')).length===0){title='O Ausente';txt='Você não financiou nada. A rotina, sem reforço, perdeu terreno ano após ano, e quem mais perdeu foi quem mais dependia dela. Não decidir também é decidir.';}
+    if(!G.funded.some(c=>!isForced(c))){title='O Ausente';txt='Você não financiou nada. A rotina, sem reforço, perdeu terreno ano após ano, e quem mais perdeu foi quem mais dependia dela. Não decidir também é decidir.';}
     else if(s.net>=thrN&&d<=-thrD){title='O Equilibrista';txt='Você conseguiu o que poucos conseguem: mais saúde no total e uma cidade menos desigual. Os dois jurados assinam embaixo.';}
     else if(s.net>=thrN){title='O Contador-chefe';txt='Sua cidade ganhou muita saúde, mas a maior parte foi para quem já tinha mais. O Contador está satisfeito; a Ouvidora pergunta por quem ficou para trás.';}
     else if(d<=-thrD){title='A Ouvidora';txt='A distância entre os mais pobres e os mais ricos diminuiu, e isso custou algum total de saúde. Com o ε escolhido, '+(s.ew>=0?'a sociedade aprovaria sua gestão.':'ainda assim a conta ponderada ficou negativa: a redução da desigualdade não compensou a saúde perdida.');}
@@ -1296,29 +1377,33 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
     const futTxt=s.future>0?' Ficaram '+fmt.format(Math.round(s.future))+' anos de vida saudável contratados que só aparecerão depois de '+yEnd+': seu sucessor vai colher o que você plantou.':'';
     const share='Cobertor Curto · Saúde para quem? · partida nº '+cfg.seed+' ('+CITY.nm+', '+cfg.years+' anos, ε = '+fmt1.format(cfg.eps)+')\nTítulo: '+title+'\nContador: '+sgn(Math.round(s.net))+' anos de vida saudável (nota '+fmt1.format(gC)+')\nOuvidora: '+sgn(Math.round(s.ew))+' ponderados (nota '+fmt1.format(gO)+')\nLegado: '+sgn(Math.round(s.future))+' anos contratados para depois do mandato (nota '+fmt1.format(gL)+')\nDistância entre mais pobres e mais ricos: '+fmt1.format(s.gap0)+' → '+fmt1.format(s.gap)+' anos ('+(d<0?'−':'+')+fmt1.format(Math.abs(d))+' dias por pessoa)\n'+G.byYear.map(b=>b.year+': '+(b.picks.join('; ')||'nada')+(b.ev?' ['+b.ev+']':'')+(b.dil?' {'+b.dil.nm+': '+b.dil.opt+'}':'')).join('\n');
     // barras QALE antes/depois
-    const W=640,H=220,L=56,R=16,T=16,B=30,cw=W-L-R,ch=H-T-B;const lo=60,hi=75;const yv=v=>T+ch-(v-lo)/(hi-lo)*ch;const band=cw/N;
+    const W=640,H=220,L=56,R=16,T=16,B=30,cw=W-L-R,ch=H-T-B,band=cw/N;
+    const all=[...H0G,...s.h],lo=Math.min(60,5*Math.floor(Math.min(...all)/5)),hi=Math.max(75,5*Math.ceil(Math.max(...all)/5));
+    const yv=v=>T+ch-(v-lo)/(hi-lo)*ch;
     let sv='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Expectativa de vida saudável por grupo, 2027 e '+yEnd+'">';
-    [60,65,70,75].forEach(t=>{sv+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yv(t)+'" y2="'+yv(t)+'" stroke="var(--line)"/><text x="'+(L-6)+'" y="'+(yv(t)+4)+'" font-size="11" class="mut mono" text-anchor="end">'+t+'</text>';});
+    for(let t=lo;t<=hi;t+=5){sv+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yv(t)+'" y2="'+yv(t)+'" stroke="var(--line)"/><text x="'+(L-6)+'" y="'+(yv(t)+4)+'" font-size="11" class="mut mono" text-anchor="end">'+t+'</text>';}
     for(let i=0;i<N;i++){const cx=L+band*(i+.5),bw=band*.28;
       sv+='<rect x="'+(cx-bw-2)+'" y="'+yv(H0G[i])+'" width="'+bw+'" height="'+(yv(lo)-yv(H0G[i]))+'" fill="var(--line)"/>';
       sv+='<rect x="'+(cx+2)+'" y="'+yv(s.h[i])+'" width="'+bw+'" height="'+(yv(lo)-yv(s.h[i]))+'" fill="'+(s.h[i]>=H0G[i]?'var(--accent)':'var(--loss)')+'"/>';
-      sv+='<text x="'+cx+'" y="'+(H-8)+'" font-size="11" text-anchor="middle" font-weight="600">'+QS[i]+'</text>';}
+      sv+='<text x="'+cx+'" y="'+(H-8)+'" font-size="11" text-anchor="middle" font-weight="600">'+QL[i]+'</text>';}
     sv+='<text x="'+(W-R)+'" y="'+(T-4)+'" font-size="10" class="mut" text-anchor="end">cinza: 2027 · cor: '+yEnd+' (anos de vida saudável esperados por pessoa)</text></svg>';
     $('gameLeft').innerHTML='<div class="final"><p class="eyebrow" style="margin-bottom:.3rem">'+yEnd+' · fim de mandato</p><div class="n">'+title+'</div><p>'+txt+futTxt+'</p>'+
-      '<div class="grades" style="grid-template-columns:repeat(3,1fr)"><div><div class="l">Contador</div><div class="g">'+fmt1.format(gC)+'</div></div><div><div class="l">Ouvidora</div><div class="g">'+fmt1.format(gO)+'</div></div><div><div class="l">Legado</div><div class="g">'+fmt1.format(gL)+'</div></div></div>'+
+      '<div class="grades"><div><div class="l">Contador</div><div class="g">'+fmt1.format(gC)+'</div></div><div><div class="l">Ouvidora</div><div class="g">'+fmt1.format(gO)+'</div></div><div><div class="l">Legado</div><div class="g">'+fmt1.format(gL)+'</div></div></div>'+
       '<div class="chart"><h4>Sua cidade em '+yEnd+'</h4>'+city()+'</div>'+
       '<div class="chart"><h4>Sua população, antes e depois</h4>'+sv+'</div>'+
       '<p style="font-size:.95rem">Você financiou '+G.funded.length+' programas. Notas de 0 a 10: Contador e Ouvidora dão 10 a um saldo de '+fmt.format(scale)+' anos de vida saudável pela própria régua; Legado dá 10 a '+fmt.format(Math.round(scale*0.5))+' anos contratados para depois do mandato.</p>'+
       '<textarea id="shareTxt" readonly aria-label="Resumo para compartilhar">'+share+'</textarea>'+
-      '<div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem"><button class="btn ghost" id="copyShare" type="button">Copiar resumo</button><button class="btn" id="replay" type="button">Nova partida</button><a class="btn ghost" href="#guia" style="text-decoration:none">Voltar ao guia</a></div></div>';
+      '<div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem"><button class="btn ghost" id="copyShare" type="button">Copiar resumo</button><button class="btn" id="replay" type="button">Nova partida</button><a class="btn ghost" href="#guia">Voltar ao guia</a></div></div>';
     $('gRTitle').textContent='Sua população em '+yEnd;
-    $('copyShare').addEventListener('click',()=>{const ta=$('shareTxt');const done=()=>{$('copyShare').textContent='Copiado';};
-      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(ta.value).then(done).catch(()=>{ta.select();});else ta.select();});
-    $('replay').addEventListener('click',()=>{$('gPlay').hidden=true;$('gStart').hidden=false;$('gSeed').value=Math.floor(Math.random()*9000)+1000;window.scrollTo(0,0);});
   }
+  // a API de área de transferência só existe em https/localhost; fora disso, seleciona o texto para Ctrl+C
+  function copyShare(b){
+    const ta=$('shareTxt');
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(ta.value).then(()=>{b.textContent='Copiado';}).catch(()=>ta.select());
+    else ta.select();
+  }
+
   route();
-
-
   applyPreset('rastreio');
 })();
 </script>
