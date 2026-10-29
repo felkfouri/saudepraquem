@@ -35,6 +35,7 @@ docs/modelo.md  as fórmulas: custo de oportunidade, EDE de Atkinson, saldo pond
 docs/jogo.md    regras do jogo, campos dos dados e como acrescentar propostas, dilemas, eventos e cidades
 tests/motor.js    motor de referência do jogo, sem navegador: as regras escritas à parte, com os dados lidos do index.html
 tests/validar.js  joga partidas na página (Playwright) e no motor, com as mesmas decisões, e compara
+tests/dilemas.js  mede se algum dilema tem resposta dominante (melhor para o Contador e para a Ouvidora ao mesmo tempo)
 package.json    dependência de desenvolvimento (Playwright) e o comando npm test
 README.md
 ```
@@ -89,6 +90,22 @@ node tests/validar.js 6 60
 ```
 
 Leva cerca de 3 segundos por partida e termina com código 0 se tudo bater; cada diferença aparece com o ano e os dois valores.
+
+### Equilíbrio dos dilemas
+
+Um dilema bom não tem resposta dominante: a opção que o Contador prefere não costuma ser a que a Ouvidora prefere. `tests/dilemas.js` rejoga cada dilema de cada partida uma vez por opção, com tudo o mais igual, e conta quantas vezes alguma opção vence nos dois jurados. Não precisa de navegador e leva segundos:
+
+```bash
+npm run dilemas
+```
+
+ou, escolhendo o número de códigos e a duração:
+
+```bash
+node tests/dilemas.js 300 5
+```
+
+Para testar números sem editar a página, passe um arquivo de ajustes como terceiro argumento (o formato está no comentário do topo do script).
 
 O motor lê do `index.html` os dados do jogo (cidades, propostas, dilemas, eventos, opções de corte, dinheiro do ano e réguas), então mudar um número ou acrescentar uma proposta não exige mexer nele. As regras, ao contrário, estão escritas duas vezes, de propósito: se uma regra mudar na página (a ordem de pagamento da conta, o apoio político, os títulos, as cartas do tutorial), mude também `tests/motor.js`, senão a validação acusa a diferença. Uma mudança que acrescente, tire ou reordene sorteios precisa ser feita nos dois lugares.
 
