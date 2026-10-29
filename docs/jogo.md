@@ -26,6 +26,10 @@ O mesmo gerador continua sendo usado durante a partida (realização da evidênc
 
 Qualquer mudança que acrescente, remova ou reordene chamadas a `G.r()` muda o que cada código produz. O mesmo vale para acrescentar cartas, dilemas ou eventos, que mudam o tamanho do que é embaralhado.
 
+### Conferir uma mudança
+
+`tests/motor.js` reescreve as regras deste documento sem navegador, lendo os dados do próprio `index.html`, e `tests/validar.js` joga partidas na página e no motor com as mesmas decisões e compara ano a ano (ver o [README](../README.md#validação-automática-do-jogo)). Mudar dados não exige mexer no motor; mudar uma regra, sim.
+
 ## O ciclo de um ano
 
 ```
