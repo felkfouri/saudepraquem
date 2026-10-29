@@ -13,14 +13,16 @@ Definida na tela "Antes de assumir" e guardada em `cfg`:
 | Cidade | capital desigual, cidade média, cidade envelhecida | saúde de partida, erosão da rotina e quem perde quando o dinheiro sai da atenção básica (`CITIES`) |
 | ε da Ouvidora | 0 a 20 (padrão 11) | aversão à desigualdade usada no saldo ponderado |
 | Tutorial | ligado (padrão) | anos 1 e 2 com cartas fixas, dilema da equipe de avaliação no ano 2 e dicas passo a passo (`coach`) |
-| Mostrar a conta | desligado (padrão) | abre a planilha da DCEA ao fechar cada ano (`mathHtml`) |
+| Mostrar a conta | desligado (padrão) | abre a planilha da DCEA ao fechar cada ano (`mathHtml`): ganho, custo de oportunidade, erosão e, no ano da epidemia, o dano dela, por grupo |
 | Código da partida | 1 a 9999 | semente do sorteio |
 
 ### Semente e reprodutibilidade
 
-`rng(seed)` é um gerador mulberry32. A partida usa `rng(código × 7919 + duração)`, e `newGame` sorteia logo no início o calendário de eventos e dilemas e a ordem do baralho. Duas pessoas com o mesmo código, a mesma duração e a mesma escolha de tutorial recebem os mesmos eventos, dilemas e propostas.
+`rng(seed)` é um gerador mulberry32. A partida usa `rng(código × 7919 + duração)`, e `newGame` sorteia logo no início o calendário de eventos e dilemas e a ordem do baralho. Duas pessoas com o mesmo código, a mesma duração e a mesma escolha de tutorial recebem os mesmos eventos, dilemas e propostas, e as mesmas surpresas ao longo de toda a partida, quaisquer que sejam as escolhas.
 
-O mesmo gerador continua sendo usado durante a partida (realização da evidência, reembaralhamento do baralho, datas e notas do jornal, resultado da negociação da emenda). A quantidade de sorteios por ano não depende das escolhas, com uma exceção: escolher "Negociar o endereço" consome um sorteio a mais. Daí em diante, para quem negociou, a realização da evidência, as cartas depois que o baralho é refeito e o jornal deixam de coincidir com os de quem não negociou. O calendário de eventos e dilemas não muda.
+Isso funciona porque o gerador da partida (`G.r`) é chamado o mesmo número de vezes a cada ano, independentemente das escolhas: realização da evidência de todas as cartas da mesa, reembaralhamento do baralho, data e notas do jornal. O único sorteio que depende de uma escolha, o resultado de "Negociar o endereço", usa um gerador à parte (`G.rNeg`, semeado a partir do mesmo código). Assim, quem negocia não desloca os sorteios seguintes, e o desfecho da negociação também é o mesmo para todos com o mesmo código.
+
+Ao mexer no código, mantenha essa regra: um sorteio que só acontece por causa de uma escolha deve usar um gerador próprio, nunca `G.r`.
 
 Qualquer mudança que acrescente, remova ou reordene chamadas a `G.r()` muda o que cada código produz. O mesmo vale para acrescentar cartas, dilemas ou eventos, que mudam o tamanho do que é embaralhado.
 

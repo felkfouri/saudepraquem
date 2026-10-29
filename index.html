@@ -197,6 +197,7 @@ a.btn{text-decoration:none;display:inline-block}
 .paper .side .bk{display:block;font-family:var(--display);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .mathbox{border:1px solid var(--line);border-radius:8px;padding:.6rem .9rem;margin:.8rem 0;background:var(--bg)}
 .mathbox table{font-size:.8rem}
+.mathbox th,.mathbox td{padding:.35rem .3rem}
 .mathbox summary{font-size:.95rem}
 .coach{border:2px solid var(--accent);background:var(--accent-soft);border-radius:8px;padding:.8rem 1rem;margin:.6rem 0 1rem;font-size:.95rem}
 .coach .eyebrow{color:var(--accent)}
@@ -1141,11 +1142,13 @@ html{scroll-padding-top:4rem}
     const sched={};evYears.forEach((y,i)=>sched[y]=evKeys[i]);
     // Estado da partida. Principais campos:
     //   r: gerador sorteado pela semente (a ordem das chamadas define a partida)   year: 1..cfg.years
+    //   rNeg: gerador à parte para o resultado da negociação da emenda, o único sorteio que depende de uma escolha;
+    //         fora de r, ele não desloca os sorteios seguintes de quem negocia
     //   cum: saldo acumulado de QALYs por grupo   pending: {ano: QALYs por grupo} já contratados para anos futuros
     //   hand/chosen/active: cards na mesa, índices marcados, índices com complemento ligado   f: realização sorteada por card
     //   funded: tudo o que foi financiado   recurring: custeios {amt, until, nm}   penalty: corte no próximo orçamento
     //   hist/years: série da distância pobres–ricos e saldo de cada ano (gráficos)   log/byYear: jornal, jurados e resumo final
-    G={r,year:1,deck:shuffle(DECK.slice(),r),sched,cum:Array(N).fill(0),hist:[0],funded:[],pending:{},ev:null,hand:[],chosen:new Set(),active:new Set(),src:'ab',closed:false,log:[],byYear:[],penalty:0,penaltyWhy:'',lowYears:0,recurring:[],evalOn:false,erosionF:1,erosionTemp:null,dilemma:null,dsched:{},f:[],years:[]};
+    G={r,rNeg:rng(cfg.seed*7919+cfg.years+0x9E3779B9),year:1,deck:shuffle(DECK.slice(),r),sched,cum:Array(N).fill(0),hist:[0],funded:[],pending:{},ev:null,hand:[],chosen:new Set(),active:new Set(),src:'ab',closed:false,log:[],byYear:[],penalty:0,penaltyWhy:'',lowYears:0,recurring:[],evalOn:false,erosionF:1,erosionTemp:null,dilemma:null,dsched:{},f:[],years:[]};
     const dk=shuffle(DILEMMAS.slice(),r);
     // com tutorial, o ano 2 (dYears[0]) é sempre a equipe de avaliação: troca de lugar no baralho para ela não repetir
     if(cfg.tutorial){const k=dk.findIndex(d=>d.id==='avaliacao');[dk[0],dk[k]]=[dk[k],dk[0]];}
@@ -1326,7 +1329,7 @@ html{scroll-padding-top:4rem}
     if(o.evalOn)G.evalOn=true;
     if(o.erosion)G.erosionF=o.erosion;
     if(o.erosionTemp)G.erosionTemp={f:o.erosionTemp.f,until:G.year+o.erosionTemp.years-1};
-    if(o.negotiate){const ng=o.negotiate;if(G.r()<0.5){for(let i=0;i<N;i++)G.cum[i]+=ng.gainQ[i];G.recurring.push({amt:ng.amt,until:999,nm:'UPA negociada'});G.negTxt='O deputado topou: a UPA vai para a periferia.';}else{G.penalty+=ng.penalty;G.penaltyWhy='o deputado não gostou da contraproposta da UPA e fez campanha contra a secretaria.';G.negTxt='O deputado se ofendeu e levou a emenda embora.';}}
+    if(o.negotiate){const ng=o.negotiate;if(G.rNeg()<0.5){for(let i=0;i<N;i++)G.cum[i]+=ng.gainQ[i];G.recurring.push({amt:ng.amt,until:999,nm:'UPA negociada'});G.negTxt='O deputado topou: a UPA vai para a periferia.';}else{G.penalty+=ng.penalty;G.penaltyWhy='o deputado não gostou da contraproposta da UPA e fez campanha contra a secretaria.';G.negTxt='O deputado se ofendeu e levou a emenda embora.';}}
     G.dilemmaNote=o.note||'';G.dilemmaPick={nm:D.nm,opt:o.t+(G.negTxt?' ('+G.negTxt+')':'')};
     renderYear();renderPop();toTurn($('gameLeft').querySelector('.yr .y'));
   }
@@ -1351,8 +1354,8 @@ html{scroll-padding-top:4rem}
     const lossQ=ocd.map((o,i)=>displaced*o/100+EROSION[i]*ef);
     if(G.src==='sub'&&spent>0){G.penalty+=120;G.penaltyWhy='o remanejamento de outras pastas no ano passado rendeu pressão na câmara.';}
     if(spent<G.budget*0.5){G.lowYears++;if(G.lowYears>=2){G.penalty+=Math.round(BASE_BUDGET*0.2);G.penaltyWhy=(G.penaltyWhy?G.penaltyWhy+' E ':'')+'a prefeitura realocou o que a saúde não vinha usando.';G.lowYears=0;}}else G.lowYears=0;
-    let dmgTxt='';
-    if(G.ev&&G.ev.damage){const mit=G.funded.some(c=>(c.tags||[]).includes(G.ev.mitigTag)&&c.year<G.year);G.ev.damage.forEach((d,i)=>lossQ[i]+=mit?d/2:d);dmgTxt=mit?' '+G.ev.mitigTxt:' A epidemia tirou saúde sobretudo dos bairros mais pobres.';}
+    let dmgTxt='',dmg=Array(N).fill(0);
+    if(G.ev&&G.ev.damage){const mit=G.funded.some(c=>(c.tags||[]).includes(G.ev.mitigTag)&&c.year<G.year);dmg=G.ev.damage.map(d=>mit?d/2:d);dmg.forEach((d,i)=>lossQ[i]+=d);dmgTxt=mit?' '+G.ev.mitigTxt:' A epidemia tirou saúde sobretudo dos bairros mais pobres.';}
     const before=G.cum.slice();for(let i=0;i<N;i++)G.cum[i]+=gainQ[i]-lossQ[i];
     const hB=H0G.map((h,i)=>h+before[i]/POP),hA=H0G.map((h,i)=>h+G.cum[i]/POP);
     const netY=sum(gainQ)-sum(lossQ);
@@ -1365,7 +1368,7 @@ html{scroll-padding-top:4rem}
     const head=headline(picks,chosenN);
     const e0=ede(hB,cfg.eps),e1=ede(hA,cfg.eps);
     const paper=paperData(picks,chosenN,netY,gapB,gapA,negTxt);
-    G.log.push({c,o,head,paper,chosenN,moodO:gapA<gapB-0.05?1:gapA>gapB+0.05?-1:0,real:realTxt.join('; ')+(realTxt.length?'.':''),netY,ewY,math:{gainQ:gainQ.slice(),lossQ:lossQ.slice(),hB,hA,e0,e1,a0:1-e0/mean(hB),a1:1-e1/mean(hA),spent,displaced,ocd:ocd.slice(),eros:EROSION.map(x=>x*ef)}});
+    G.log.push({c,o,head,paper,chosenN,moodO:gapA<gapB-0.05?1:gapA>gapB+0.05?-1:0,real:realTxt.join('; ')+(realTxt.length?'.':''),netY,ewY,math:{gainQ:gainQ.slice(),lossQ:lossQ.slice(),hB,hA,e0,e1,a0:1-e0/mean(hB),a1:1-e1/mean(hA),spent,displaced,ocd:ocd.slice(),eros:EROSION.map(x=>x*ef),dmg}});
     G.byYear.push({year:Y0+G.year-1,picks:picks.map(p=>p.nm),ev:G.ev?G.ev.nm:null,dil:G.dilemmaPick||null});G.dilemmaPick=null;G.years.push(netY);
     G.closed=true;renderYear();renderPop();toTurn($('gameLeft').querySelector('.paper')||$('gameLeft').querySelector('.yr .y'));
   }
@@ -1416,10 +1419,12 @@ html{scroll-padding-top:4rem}
   function mathHtml(y){
     if(!cfg.showMath||!y.math)return '';
     const m=y.math;const f=x=>fmt.format(Math.round(x)),f2=x=>fmt1.format(x);
-    const rows=QL.map((q,i)=>'<tr><td>'+q+'</td><td class="num">'+f2(m.hB[i])+'</td><td class="num">+'+f(m.gainQ[i])+'</td><td class="num">−'+f(m.lossQ[i]-m.eros[i])+'</td><td class="num">−'+f(m.eros[i])+'</td><td class="num">'+sgn(Math.round(m.gainQ[i]-m.lossQ[i]))+'</td><td class="num">'+f2(m.hA[i])+'</td></tr>').join('');
-    const tot='<tr style="font-weight:600"><td>Total</td><td class="num">'+f2(mean(m.hB))+' (média)</td><td class="num">+'+f(sum(m.gainQ))+'</td><td class="num">−'+f(m.displaced)+'</td><td class="num">−'+f(sum(m.eros))+'</td><td class="num">'+sgn(Math.round(y.netY))+'</td><td class="num">'+f2(mean(m.hA))+' (média)</td></tr>';
-    return '<details class="mathbox" open><summary>A conta deste ano (DCEA)</summary><div class="tablewrap"><table><thead><tr><th>Grupo</th><th class="num">Saúde antes (anos)</th><th class="num">Ganho realizado</th><th class="num">Custo de oportunidade</th><th class="num">Erosão da rotina</th><th class="num">Saldo</th><th class="num">Saúde depois (anos)</th></tr></thead><tbody>'+rows+tot+'</tbody></table></div>'+
-      '<p class="hint" style="color:var(--fg);margin:.6rem 0 0">Gasto: R$ '+f(m.spent)+' mi ÷ limiar R$ '+fmt.format(GL/1000)+' mil = '+f(m.displaced)+' anos de vida saudável deslocados, repartidos '+m.ocd.join('/')+'% entre os grupos. Equivalente igualmente distribuído (ε = '+fmt1.format(cfg.eps)+'): '+dec(m.e0,4)+' → '+dec(m.e1,4)+' anos, × 1 milhão de pessoas = <b>'+sgn(Math.round(y.ewY))+'</b> (saldo ponderado). Índice de Atkinson: '+dec(m.a0,5)+' → '+dec(m.a1,5)+' ('+(m.a1<m.a0?'desigualdade menor':m.a1>m.a0?'desigualdade maior':'sem mudança')+'). Saldo simples do Contador: '+sgn(Math.round(y.netY))+'.</p></details>';
+    // colunas de perda: custo de oportunidade (gasto ÷ limiar), erosão e, só no ano da epidemia, o dano dela
+    const epi=sum(m.dmg)>0,cell=v=>'<td class="num">−'+f(v)+'</td>';
+    const rows=QL.map((q,i)=>'<tr><td>'+q+'</td><td class="num">'+f2(m.hB[i])+'</td><td class="num">+'+f(m.gainQ[i])+'</td>'+cell(m.displaced*m.ocd[i]/100)+cell(m.eros[i])+(epi?cell(m.dmg[i]):'')+'<td class="num">'+sgn(Math.round(m.gainQ[i]-m.lossQ[i]))+'</td><td class="num">'+f2(m.hA[i])+'</td></tr>').join('');
+    const tot='<tr style="font-weight:600"><td>Total</td><td class="num">'+f2(mean(m.hB))+' (média)</td><td class="num">+'+f(sum(m.gainQ))+'</td>'+cell(m.displaced)+cell(sum(m.eros))+(epi?cell(sum(m.dmg)):'')+'<td class="num">'+sgn(Math.round(y.netY))+'</td><td class="num">'+f2(mean(m.hA))+' (média)</td></tr>';
+    return '<details class="mathbox" open><summary>A conta deste ano (DCEA)</summary><div class="tablewrap"><table><thead><tr><th>Grupo</th><th class="num">Saúde antes (anos)</th><th class="num">Ganho realizado</th><th class="num">Custo de oportunidade</th><th class="num">Erosão da rotina</th>'+(epi?'<th class="num">Epidemia</th>':'')+'<th class="num">Saldo</th><th class="num">Saúde depois (anos)</th></tr></thead><tbody>'+rows+tot+'</tbody></table></div>'+
+      '<p class="hint" style="color:var(--fg);margin:.6rem 0 0">Gasto: R$ '+f(m.spent)+' mi ÷ limiar R$ '+fmt.format(GL/1000)+' mil = '+f(m.displaced)+' anos de vida saudável deslocados, repartidos '+m.ocd.join('/')+'% entre os grupos. '+(epi?'A epidemia tirou outros '+f(sum(m.dmg))+', fora dessa conta. ':'')+'Equivalente igualmente distribuído (ε = '+fmt1.format(cfg.eps)+'): '+dec(m.e0,4)+' → '+dec(m.e1,4)+' anos, × 1 milhão de pessoas = <b>'+sgn(Math.round(y.ewY))+'</b> (saldo ponderado). Índice de Atkinson: '+dec(m.a0,5)+' → '+dec(m.a1,5)+' ('+(m.a1<m.a0?'desigualdade menor':m.a1>m.a0?'desigualdade maior':'sem mudança')+'). Saldo simples do Contador: '+sgn(Math.round(y.netY))+'.</p></details>';
   }
   const plain=n=>n.replace(/ \([^)]*\)$/,''); // tira o sufixo do complemento: "X (com busca ativa)" → "X"
   const isForced=c=>c.nm===EVENTS.judicial.forced.nm; // card pago por decisão judicial, não por escolha
