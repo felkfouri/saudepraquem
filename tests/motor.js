@@ -14,7 +14,7 @@ function readData(file){
   const html=fs.readFileSync(file,'utf8');
   const part=(from,to)=>{const i=html.indexOf(from),j=i<0?-1:html.indexOf(to,i);if(j<0)throw new Error(file+': não achei o trecho que começa com '+JSON.stringify(from));return html.slice(i,j);};
   const src=part('  /* ---------- Jogo: dez anos de gestão ---------- */','  // gerador com semente')+part('  const GRADES=','\n')+'\n';
-  return new Function(src+'return {Y0,GL,MARGIN,CRISIS_F,EXTRA,TRANSFER,JUD,APOIO0,APOIO0_5,APOIO_MAX,CITIES,ADDON,EXITS,DECK,DILEMMAS,EVSPREAD,EVENTS,GRADES};')();
+  return new Function(src+'return {Y0,GL,MARGIN,CRISIS_F,EXTRA,TRANSFER,JUD,APOIO0,APOIO0_5,APOIO_MAX,CUS_G,PILOT,PACTO,CONF,CITIES,ADDON,EXITS,DECK,SINERGIAS,DILEMMAS,EVSPREAD,EVENTS,GRADES};')();
 }
 const D=readData(path.join(__dirname,'..','index.html'));
 // cartas fixas dos anos 1 e 2 do tutorial (dealYear na página)
@@ -30,6 +30,7 @@ function ede(h,eps){const m=mean(h);if(Math.abs(eps-1)<1e-9)return Math.exp(mean
 function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function shuffle(a,r){for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 const addonOf=c=>D.ADDON[c.addon]||null;
+const lean=sh=>(sh[0]+sh[1])-(sh[3]+sh[4]);
 function effShares(sh,a){const s=sum(sh);const [w,ref]=a.mix;return sh.map((v,i)=>(1-w)*100*v/s+w*ref[i]);}
 
 // ---------- partida
@@ -47,7 +48,8 @@ function newGame(cfg0){
   const evYears=pick(nEv,new Set(dYears));
   const sched={};evYears.forEach((y,i)=>sched[y]=evKeys[i]);
   const G={cfg,city,r,year:1,deck:shuffle(D.DECK.slice(),r),sched,cum:zeros(),funded:[],progs:[],nextId:1,pending:{},pendingLoss:{},due:{},pens:[],
-    hand:[],apoio:cfg.years===5?D.APOIO0_5:D.APOIO0,lastPaid:'ab',exported:{fed:0,transfer:0},evalOn:cfg.diff==='facil',erosionF:1,erosionTemp:null,dsched:{}};
+    hand:[],apoio:cfg.years===5?D.APOIO0_5:D.APOIO0,lastPaid:'ab',exported:{fed:0,transfer:0},evalOn:cfg.diff==='facil',erosionF:1,erosionTemp:null,dsched:{},
+    pilots:new Set(),scaleNext:[],eqUp:0,pacto:false,pactFed:0,cons:'nenhum',log:[]};
   const dk=shuffle(D.DILEMMAS.slice(),r);
   if(cfg.tutorial){const k=dk.findIndex(d=>d.id==='avaliacao');[dk[0],dk[k]]=[dk[k],dk[0]];}
   dYears.forEach((y,i)=>G.dsched[y]=dk[i]);
@@ -56,12 +58,13 @@ function newGame(cfg0){
 }
 function dealYear(G){
   const evk=G.sched[G.year]||null;G.evKey=evk;G.ev=evk?D.EVENTS[evk]:null;
-  G.chosen=new Set();G.active=new Set();G.closeSel=new Set();G.exit='ab';G.closed=false;
+  G.chosen=new Set();G.active=new Set();G.closeSel=new Set();G.pilots=new Set();G.exit='ab';G.closed=false;
   if(G.year>1)G.apoio=Math.min(D.APOIO_MAX,G.apoio+1);
   let margin=D.MARGIN;if(G.ev&&G.ev.marginF)margin=Math.round(D.MARGIN*G.ev.marginF);
   const pen=sum(G.pens.map(p=>p.amt));if(pen){margin=Math.max(0,margin-pen);G.pens=[];}
-  G.margin=margin;G.fedYear=G.ev&&G.ev.fed||0;
+  G.margin=margin;G.fedPact=G.pactFed;G.pactFed=0;G.fedYear=(G.ev&&G.ev.fed||0)+G.fedPact;
   G.dilemma=G.dsched[G.year]||null;G.dilemmaDone=!G.dilemma;G.dilemmaSpend=0;
+  G.eqCap=Math.max(0,G.city.eq+G.eqUp-(G.ev&&G.ev.eqMinus||0));G.conf=D.CONF[G.cfg.years].includes(G.year);G.cons='nenhum';
   if(G.deck.length<5)G.deck=shuffle(D.DECK.filter(d=>!G.hand.includes(d)),G.r);
   let hand=G.deck.splice(0,4);
   if(G.cfg.tutorial&&G.year<=2){G.deck.push(...hand);hand=TUTORIAL_HANDS[G.year].map(n=>D.DECK.find(c=>c.nm===n));G.deck=G.deck.filter(c=>!hand.includes(c));}
@@ -71,6 +74,8 @@ function dealYear(G){
   if(G.ev&&G.ev.extra)hand.push(G.ev.extra);
   G.hand=hand;G.forced=G.ev&&G.ev.forced?G.ev.forced:null;
   const draw=c=>{const [lo,hi]=D.EVSPREAD[c.ev];return lo+(hi-lo)*G.r();};G.f=hand.map(draw);G.fForced=G.forced?draw(G.forced):1;
+  // piloto do ano anterior: volta à mesa, sem sorteio, com a realização do piloto × PILOT.scale
+  for(const x of G.scaleNext){hand.push(Object.assign({},x.card,{scaled:{pf:x.f,y:x.y}}));G.f.push(x.f*D.PILOT.scale);}G.scaleNext=[];
   G.forcedMun=G.forced?D.JUD.cus:0;
   computeRoom(G);
 }
@@ -87,12 +92,18 @@ const marginOc=G=>G.ev&&G.ev.oc?G.ev.oc:G.city.net;
 function cardPlan(c,on){
   const a=addonOf(c),useA=!!(a&&on),cm=useA?a.cost:1,gm=useA?a.gain:1,n=c.profile.length;
   const cost=Math.round(c.cost*cm),gain=Math.round(c.gain*gm),sh=useA?effShares(c.sh,a):c.sh.slice();
-  const p={useA,addonT:useA?a.t:'',pontual:!c.cus,n,cost,gain,sh,profile:c.profile};
+  const p={useA,addonT:useA?a.t:'',pontual:!c.cus,n,cost,gain,sh,profile:c.profile,eq:(c.eq||0)+(useA&&a.eq||0)};
   if(p.pontual)return Object.assign(p,{first:c.cost*cm,imp:c.cost*cm,cus:0,h:0,q:0});
   const imp=c.imp*cm,cus=c.cus*cm;
   return Object.assign(p,{first:imp+cus,imp,cus,h:c.h||0,q:gain/n});
 }
-function progYearCost(p,y){if(p.pontual||p.closedAt&&p.closedAt<=y||y<=p.start)return null;const fed=p.cus*p.h;return {mun:p.cus-fed,fed};}
+// custeio: sobe CUS_G por ano de funcionamento
+function progYearCost(p,y){if(p.pontual||p.closedAt&&p.closedAt<=y||y<=p.start)return null;const c=p.cus*Math.pow(1+D.CUS_G,y-p.start),fed=c*p.h;return {mun:c-fed,fed};}
+const canPilot=(G,c)=>!!c.pilot&&!c.scaled&&G.year<G.cfg.years;
+const pilotPlan=c=>({first:(c.imp+c.cus)*D.PILOT.cost,gain:c.gain/c.profile.length*D.PILOT.gain,eq:c.eq>0?1:0});
+const running=(q,y)=>!q.pontual&&!q.closedAt&&q.start<=y;
+const synOf=(G,p,y)=>D.SINERGIAS.filter(s=>s.alvo.includes(p.card)&&G.progs.some(q=>q!==p&&s.par.includes(q.card)&&running(q,y)));
+const gapDays=(G,h)=>((h[4]-h[0])-(G.city.h0[4]-G.city.h0[0]))*365;
 function addDue(G,yr,mun,fed,nm){const d=G.due[yr]||(G.due[yr]={mun:0,fed:0,items:[]});d.mun+=mun;d.fed+=fed;d.items.push({nm,mun,fed});}
 const addRecurring=(G,amt,y0,y1,nm)=>{for(let y=y0;y<=y1;y++)addDue(G,y,amt,0,nm);};
 function commitments(G,skip){
@@ -136,22 +147,36 @@ function applyDilemma(G,k){
   if(o.evalOn)G.evalOn=true;
   if(o.erosion)G.erosionF=o.erosion;
   if(o.erosionTemp)G.erosionTemp={f:o.erosionTemp.f,until:G.year+o.erosionTemp.years-1};
+  if(o.eqUp){G.eqUp+=o.eqUp;G.eqCap+=o.eqUp;}
   if(o.negotiate){const ng=o.negotiate;if(G.r()<0.5){for(let i=0;i<N;i++)G.cum[i]+=ng.gainQ[i];addRecurring(G,ng.amt,G.year+1,G.cfg.years,'UPA negociada');}
     else G.pens.push({amt:ng.penalty,why:'emenda negociada'});}
   computeRoom(G);
 }
-// sel: {cards: [índices da mão], addons: [índices com complemento], exit: 'ab'|'fila'|'pref'|'baixo', close: [ids de programa]}
+// compromisso da conferência, cumprido com a seleção do ano (Tm: a conta do ano)
+function consMet(G,k,Tm){
+  if(k==='periferia')return [...G.chosen].some(i=>lean(cardPlan(G.hand[i],G.active.has(i)).sh)>10);
+  if(k==='meio')return !(G.exit==='fila'&&waterfall(G,Tm,'fila').exit>0);
+  if(k==='centro')return G.closeSel.size===0;
+  return true;
+}
+// sel: {cards: [índices da mão], addons: [índices com complemento], pilots: [índices em piloto],
+//   exit: 'ab'|'fila'|'pref'|'baixo', close: [ids de programa], cons: compromisso da conferência, pacto: true|false (ano 1)}
 function choose(G,sel){
   if(G.closed)throw new Error('ano já fechado');
   if(!G.dilemmaDone)throw new Error('resolva o dilema antes');
-  G.chosen=new Set(sel.cards||[]);G.active=new Set(sel.addons||[]);G.closeSel=new Set(sel.close||[]);
+  G.chosen=new Set(sel.cards||[]);G.active=new Set(sel.addons||[]);G.closeSel=new Set(sel.close||[]);G.pilots=new Set(sel.pilots||[]);
+  if(sel.cons){if(!G.conf)throw new Error('não há conferência no ano '+G.year);G.cons=sel.cons;}
+  if(sel.pacto!==undefined){if(G.year!==1)throw new Error('o pacto só é oferecido no ano 1');G.pacto=!!sel.pacto;}
   for(const i of G.chosen)if(!G.hand[i])throw new Error('carta inválida: '+i);
+  for(const i of G.pilots)if(!G.hand[i]||G.chosen.has(i)||!canPilot(G,G.hand[i]))throw new Error('piloto inválido: '+i);
   for(const i of G.active)if(!G.chosen.has(i)||!addonOf(G.hand[i]))throw new Error('complemento inválido: '+i);
   const cl=closable(G);for(const id of G.closeSel)if(!cl.some(p=>p.id===id))throw new Error('programa que não pode ser encerrado: '+id);
   const k=sel.exit||'ab';if(!exitOk(G,k))throw new Error('opção fora de alcance no ano '+G.year+': '+k);G.exit=k;
   computeRoom(G);
-  const spent=sum([...G.chosen].sort((a,b)=>a-b).map(i=>cardPlan(G.hand[i],G.active.has(i)).first));
+  const pl=[...G.chosen].sort((a,b)=>a-b).map(i=>cardPlan(G.hand[i],G.active.has(i))),pp=[...G.pilots].sort((a,b)=>a-b).map(i=>pilotPlan(G.hand[i]));
+  const spent=sum(pl.map(p=>p.first))+sum(pp.map(p=>p.first)),eq=sum(pl.map(p=>p.eq))+sum(pp.map(p=>p.eq));
   if(spent>G.room+1e-9)throw new Error('as cartas passam do espaço do ano '+G.year+': '+spent.toFixed(1)+' > '+G.room.toFixed(1));
+  if(eq>G.eqCap)throw new Error('as cartas passam das equipes do ano '+G.year+': '+eq+' > '+G.eqCap);
 }
 function closeYear(G){
   if(G.closed)throw new Error('ano já fechado');
@@ -168,8 +193,15 @@ function closeYear(G){
     if(pl.pontual)schedule(G,pl.profile,pl.sh,G.year,pl.gain*f);
     G.progs.push(p);G.funded.push(p);
   }
-  // 4. cada programa em funcionamento planta o ganho de um ano  5. ordem judicial
-  for(const p of G.progs){if(p.pontual||p.closedAt||p.start>G.year)continue;schedule(G,p.profile,p.sh,G.year,p.q*p.f);}
+  // 3b. pilotos
+  for(const i of [...G.pilots].sort((a,b)=>a-b)){
+    const c=G.hand[i],pp=pilotPlan(c),f=G.f[i]*(c.tipo==='infraestrutura'?G.city.infra:1);
+    newMun+=pp.first;schedule(G,c.profile,c.sh,G.year,pp.gain*f);
+    if(G.year<G.cfg.years)G.scaleNext.push({card:c,f:G.f[i],y:G.year});
+    G.funded.push({nm:c.nm+' (piloto)',pilot:true});
+  }
+  // 4. cada programa em funcionamento planta o ganho de um ano, com o bônus das combinações  5. ordem judicial
+  for(const p of G.progs){if(p.pontual||p.closedAt||p.start>G.year)continue;schedule(G,p.profile,p.sh,G.year,p.q*p.f*(1+sum(synOf(G,p,G.year).map(x=>x.bonus))));}
   if(G.forced){const c=G.forced;schedule(G,c.profile,c.sh,G.year,c.gain*G.fForced);
     for(let k=1;k<c.profile.length;k++){const fed=D.JUD.cus*D.JUD.h;addDue(G,G.year+k,D.JUD.cus-fed,fed,c.nm);}
     G.funded.push({nm:c.nm,forced:true});}
@@ -181,6 +213,9 @@ function closeYear(G){
   G.exported.fed+=K.fed;G.exported.transfer+=tr.fed;
   if(tr.exit>0)G.apoio-=apoioCost(G,G.exit);
   G.lastPaid=tr.exit>0?G.exit:'ab';
+  // 8b. conferência
+  let confRes=null;
+  if(G.conf){confRes={k:G.cons,ok:consMet(G,G.cons,Tm)};if(G.cons!=='nenhum')G.apoio=confRes.ok?Math.min(D.APOIO_MAX,G.apoio+1):Math.max(0,G.apoio-1);}
   // 9. erosão, perdas adiadas que vencem agora e epidemia
   let ef=G.erosionF;if(G.erosionTemp){if(G.year<=G.erosionTemp.until)ef*=G.erosionTemp.f;else G.erosionTemp=null;}
   for(let i=0;i<N;i++)lossQ[i]+=G.city.erosion[i]*ef;
@@ -188,8 +223,17 @@ function closeYear(G){
   if(G.ev&&G.ev.damage){const mit=G.progs.some(p=>p.tags.includes(G.ev.mitigTag)&&p.start<G.year&&(!p.closedAt||p.closedAt>G.year));G.ev.damage.forEach((d,i)=>{lossQ[i]+=mit?d/2:d;});}
   // 10. saldo do ano
   for(let i=0;i<N;i++)G.cum[i]+=gainQ[i]-lossQ[i];
-  G.closed=true;
-  return {gainQ,lossQ,Tm,tr,displaced:Lo.d};
+  // 11. pacto  12. eleição
+  let pactRes=null;const PA=D.PACTO[G.cfg.years];
+  if(G.pacto&&G.year===PA.ate){const dd=gapDays(G,popStats(G).h);pactRes={ok:dd<=-PA.alvo,d:dd};
+    if(pactRes.ok)G.pactFed=D.PACTO.bonus;else G.pens.push({amt:D.PACTO.multa,why:'pacto'});}
+  let elRes=null;
+  if(isElection(G)){elRes={won:G.apoio>0,p:null};
+    if(!elRes.won&&G.year<G.cfg.years){const cost=p=>progYearCost(p,G.year+1).mun/(p.q*p.f);
+      const cands=G.progs.filter(p=>running(p,G.year)).sort((a,b)=>cost(b)-cost(a)||a.id-b.id);
+      if(cands.length){const p=cands[0];p.closedAt=G.year+1;p.closedBy='prefeito';elRes.p=p;}}}
+  G.closed=true;G.log.push({confRes,pactRes,elRes});
+  return {gainQ,lossQ,Tm,tr,displaced:Lo.d,confRes,pactRes,elRes};
 }
 function nextYear(G){if(!G.closed)throw new Error('feche o ano antes');if(G.year>=G.cfg.years)return false;G.year++;dealYear(G);return true;}
 
@@ -200,7 +244,7 @@ function popStats(G){
   const h0=G.city.h0,h=h0.map((x,i)=>x+G.cum[i]/POP),future=pendingTotal(G),owe=pendingLossTotal(G);
   return {h,net:sum(G.cum),ew:(ede(h,G.cfg.eps)-ede(h0,G.cfg.eps))*TOTAL,gap:h[4]-h[0],gap0:h0[4]-h0[0],future,owe,legacy:future-owe};
 }
-function heranca(G){let mun=0,fed=0,n=0;for(const p of G.progs){if(p.pontual||p.closedAt)continue;n++;const f=p.cus*p.h;mun+=p.cus-f;fed+=f;}return {mun,fed,n};}
+function heranca(G){let mun=0,fed=0,n=0;for(const p of G.progs){const c=progYearCost(p,G.cfg.years+1);if(!c)continue;n++;mun+=c.mun;fed+=c.fed;}return {mun,fed,n};}
 function finalStats(G){
   const s=popStats(G),d=(s.gap-s.gap0)*365,R=D.GRADES[G.cfg.years],cl=x=>Math.max(0,Math.min(10,x));
   let title;
@@ -213,7 +257,7 @@ function finalStats(G){
   else title='O Morno';
   const her=heranca(G);
   return {title,net:s.net,ew:s.ew,legacy:s.legacy,gapDays:d,gradeC:cl(s.net/R.C*10),gradeO:cl(s.ew/R.O*10),gradeL:cl(s.legacy/R.L*10),
-    herancaN:her.n,herancaMun:her.mun,exported:G.exported.fed+G.exported.transfer,nClosed:G.progs.filter(p=>p.closedAt).length};
+    herancaN:her.n,herancaMun:her.mun,exported:G.exported.fed+G.exported.transfer,nClosed:G.progs.filter(p=>p.closedAt&&!p.closedBy).length};
 }
 
-module.exports={D,newGame,dealYear,applyDilemma,choose,closeYear,nextYear,cardPlan,computeRoom,closable,exitOk,apoioCost,addonOf,popStats,finalStats};
+module.exports={D,newGame,dealYear,applyDilemma,choose,closeYear,nextYear,cardPlan,pilotPlan,canPilot,computeRoom,closable,exitOk,apoioCost,addonOf,popStats,finalStats};

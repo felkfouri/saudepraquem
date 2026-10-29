@@ -26,6 +26,8 @@ O mesmo gerador continua sendo usado durante a partida (realização da evidênc
 
 O jornal tem um gerador próprio (`G.jr`), derivado do mesmo código, para a data, as variações de texto, a carta do leitor e as notas breves. Assim, acrescentar ou tirar textos do jornal não muda nenhuma partida.
 
+Piloto, equipes, combinações, custeio que encarece, conferência, pacto e eleição não usam o gerador: o card de "ampliar o piloto" volta à mesa com a realização já sorteada no ano do piloto. Por isso essas regras não mudaram o que cada código produz.
+
 Qualquer mudança que acrescente, remova ou reordene chamadas a `G.r()` muda o que cada código produz. O mesmo vale para acrescentar cartas, dilemas ou eventos, que mudam o tamanho do que é embaralhado.
 
 ### Conferir uma mudança
@@ -35,14 +37,16 @@ Qualquer mudança que acrescente, remova ou reordene chamadas a `G.r()` muda o q
 ## O ciclo de um ano
 
 ```
-dealYear()        abre o ano: evento, apoio, margem, dilema, cartas, realização sorteada e espaço para programas novos
+dealYear()        abre o ano: evento, apoio, margem, repasse do pacto, dilema, cartas (e o piloto do ano anterior,
+   │              para ampliar), realização sorteada, equipes, conferência e espaço para programas novos
    │
    ├─ dilema?  →  applyDilemma(k)   (antes do orçamento)
    │
-   ├─ jogador marca cartas, complementos, programas a encerrar e o que deixa de ser feito
-   │  (renderYear redesenha a cada ação)
+   ├─ jogador marca cartas, complementos, pilotos, programas a encerrar, o compromisso da conferência (anos de
+   │  conferência), o pacto (ano 1) e o que deixa de ser feito  (renderYear redesenha a cada ação)
    │
-closeYear()       encerra, inicia, planta o ganho do ano, paga a conta, cobra a saúde deslocada, gera jornal e jurados
+closeYear()       encerra, inicia programas e pilotos, planta o ganho do ano (com as combinações), paga a conta,
+   │              cobra a saúde deslocada, confere conferência, pacto e eleição, gera jornal e jurados
    │
 nextYear()        próximo ano, ou renderFinal() no último
 ```
@@ -57,8 +61,11 @@ nextYear()        próximo ano, ou renderFinal() no último
 | Compromissos | custeio municipal dos programas em funcionamento, contas de dilemas, segunda parcela da ordem judicial | `commitments` |
 | Ordem judicial (evento) | R$ 125 mi neste ano | `JUD` |
 | Dilema | o que a opção escolhida tira do ano (mutirão, equipe de avaliação, resposta à enchente) | `G.dilemmaSpend` |
+| Repasse do pacto | R$ 150 mi no ano seguinte ao prazo, se a meta foi cumprida; soma-se à transferência | `PACTO.bonus`, `G.fedPact` |
 
-**Espaço para programas novos** = transferência + margem + `EXTRA` − compromissos − ordem judicial − dilema, com mínimo zero. As cartas marcadas precisam caber nele: se passarem, "Fechar o ano" fica desabilitado até o jogador desmarcar algo ou encerrar um programa. Compromissos, ordem judicial e dilema são pagos sempre, mesmo que passem do limite (o painel avisa quando isso acontece), então nenhuma partida trava.
+**Espaço para programas novos** = transferência (do evento e do pacto) + margem + `EXTRA` − compromissos − ordem judicial − dilema, com mínimo zero. As cartas marcadas precisam caber nele: se passarem, "Fechar o ano" fica desabilitado até o jogador desmarcar algo ou encerrar um programa. Compromissos, ordem judicial e dilema são pagos sempre, mesmo que passem do limite (o painel avisa quando isso acontece), então nenhuma partida trava.
+
+**Equipes.** Além do dinheiro, as cartas marcadas precisam caber nas equipes do ano (`G.eqCap`): quantas a secretaria consegue contratar e treinar para implantar programas novos. São `CITY.eq` (5 na capital, 3 na cidade média, 4 na envelhecida), mais 1 por ano depois de conceder o reajuste da atenção básica (`eqUp`) e menos 2 no ano da greve (`eqMinus`). Cada carta pede `eq` equipes; a busca ativa pede mais 1 (`ADDON.busca.eq`); um piloto pede 1 se a carta pede alguma. Equipes não acumulam de um ano para o outro e não são gastas pelos programas que já funcionam. Se a seleção passar das equipes, "Fechar o ano" fica desabilitado.
 
 A margem é o quanto a receita da saúde cresce no ano. Sem programa novo, ela reforçaria a rede; gasta em outra coisa, desloca saúde como qualquer gasto (ver [3](#3-para-pagar-o-que-deixa-de-ser-feito-exits)). Os cortes vindos de dilemas (reordenar a fila: R$ 40 mi; emenda negociada que dá errado: R$ 60 mi) saem da margem do ano seguinte, com piso zero, e o aviso lista cada motivo (`G.pens`).
 
@@ -79,10 +86,10 @@ Com a equipe de avaliação contratada (ou no modo fácil), as cartas de evidên
 **Programa ou ação pontual** (`cardPlan`). Cada carta tem o custo total para o SUS (`cost`) e, se for um programa, uma ficha com implantação (`imp`) e custeio anual (`cus`), com `imp + n·cus = cost`, em que n é o número de anos do `profile`:
 
 - no ano da aprovação, o programa paga `imp + cus` (o card mostra "R$ X mi + R$ Y mi/ano");
-- a partir do ano seguinte, paga `cus` todo ano enquanto funcionar, como compromisso. A União paga a parte `h` desse custeio (o card diz como, em `hab`); essa parte não sai da cidade e vai para o custo exportado;
+- a partir do ano seguinte, paga o custeio todo ano enquanto funcionar, como compromisso. O custeio sobe `CUS_G` (3%) por ano de funcionamento: no ano y, `cus × 1,03^(y − início)`. É o reajuste de salários e contratos, que a margem não acompanha. A União paga a parte `h` desse custeio (o card diz como, em `hab`); essa parte não sai da cidade e vai para o custo exportado;
 - cada ano de funcionamento planta `gain/n` anos de vida saudável (× complemento × realização, e × `CITY.infra` se for infraestrutura), espalhados pelo `profile`. Em n anos o programa entrega exatamente a promessa do card; depois, segue rendendo `gain/n` por ano.
 
-Como `imp + n·cus = cost`, o custo por ano ganho e o selo do limiar (`cost ÷ gain`) não dependem de quem paga nem de quando.
+O custo por ano ganho e o selo do limiar usam o preço de hoje (`cost ÷ gain`, com `imp + n·cus = cost`), sem o reajuste; na lista de compromissos, o custo por ano ganho de cada programa em funcionamento usa o custeio do ano.
 
 Cartas sem `cus` são ações pontuais (terapia gênica, campanha de mídia, aplicativo, mutirão de catarata): pagam `cost` no ano e rendem `gain` uma vez, pelo `profile`. O SAMU rende em dois anos (`profile:[.5,.5]`).
 
@@ -99,6 +106,17 @@ $$s'_i = (1-w)\cdot 100\cdot\frac{s_i}{\sum_j s_j} + w \cdot \text{ref}_i$$
 | `criterio` | fila por critério clínico | ×1,00 | ×1,00 | 30% `POOR` |
 | `particular` | estender à rede particular conveniada | ×1,10 | ×1,15 | 50% `RICH` |
 | `gratuito` | com transporte gratuito até o serviço | ×1,20 | ×1,05 | 50% `POOR` |
+
+**Piloto** (`PILOT`). Cartas com o campo `pilot` (programas de evidência moderada ou fraca que dá para testar em pequena escala: telessaúde, mamografia móvel, saúde mental, tomógrafo, check-up, central de regulação, farmácia) oferecem "só um piloto", que exclui o programa completo no mesmo ano. Obras grandes, remédios e ações pontuais não têm piloto. O piloto:
+
+- custa `0,2 × (imp + cus)` só neste ano, sem custeio depois, e usa 1 equipe (0 se a carta não pede equipe);
+- rende `0,2 ×` o ganho de um ano de funcionamento (`gain/n`), espalhado pelo `profile`, com a realização sorteada da carta;
+- revela, ao fechar o ano, quanto a carta rendeu de verdade;
+- volta à mesa no ano seguinte, uma única vez, como "ampliar o piloto": a mesma carta, com a realização do piloto × `PILOT.scale` (0,9, o efeito de escala), sem novo sorteio. Se não for ampliado naquele ano, some.
+
+O preço do piloto: o dinheiro do teste, um ano de atraso no programa (e no ganho) e 10% a menos de realização em escala. Vale mais quando a evidência é fraca e a implantação é cara; com a equipe de avaliação, que já mostra a estimativa, vale menos. No último ano não há piloto.
+
+**Combinações** (`SINERGIAS`). Cada combinação tem `alvo` (cartas que rendem mais), `par` (cartas que as fazem render mais) e `bonus`. Em cada ano em que um programa do alvo funciona junto com algum programa do par (outro programa, também em funcionamento naquele ano, inclusive se começou no mesmo ano), o ganho daquele ano do alvo é multiplicado por `1 + bonus`; bônus de combinações diferentes se somam. Ações pontuais e pilotos não entram. O card mostra com quem combina e se o parceiro já funciona; o jornal anuncia a primeira vez que cada combinação rende.
 
 **Encerrar.** Na lista de compromissos, cada programa em funcionamento desde um ano anterior tem a caixa "encerrar este ano", com o quanto ele rende por ano e o custo por ano ganho para a cidade. Encerrar vale já no ano: o custeio (municipal e federal) para, o espaço do ano cresce e o programa deixa de plantar ganho novo; o que já foi plantado continua aparecendo nos anos seguintes. Não custa apoio político, mas sai no jornal. Um programa de saneamento encerrado deixa de amortecer a epidemia.
 
@@ -124,7 +142,7 @@ Cada parte paga desloca `valor × 10⁶ / 40.000 × multiplicador` anos de vida 
 - **Outras cidades.** O perfil da rede é 25/22/20/18/15 na cidade média e 28/24/21/16/11 na envelhecida. A rotina usa o `srcAb` da cidade. Fila, prefeito e baixo valor seguem a inclinação da cidade: com t = (srcAb₁ − 20)/15, cada valor vira 20 + t·(o − 20).
 - **Greve.** No ano da greve, a margem, a rotina e a fila recaem 40/30/15/10/5. Prefeito e baixo valor mantêm o próprio perfil.
 - **Perdas adiadas.** A parte que vence no ano seguinte fica em `G.pendingLoss` e é cobrada quando o ano chega. A que passa do fim do mandato é descontada do Legado.
-- **Apoio político.** Começa com 2 pontos (1 no modo de 5 anos), recupera 1 por ano a partir do ano 2, até 3. Só é gasto se a opção pagou alguma coisa. Os anos de eleição são 2028, 2032 e 2036. Uma opção sem apoio suficiente aparece desabilitada, com o motivo.
+- **Apoio político.** Começa com 2 pontos (1 no modo de 5 anos), recupera 1 por ano a partir do ano 2, até 3. Só é gasto se a opção pagou alguma coisa. Os anos de eleição são 2028, 2032 e 2036. Uma opção sem apoio suficiente aparece desabilitada, com o motivo. A conferência de saúde soma ou tira 1 ponto, e a eleição depende do que sobra (ver [Política](#política-pacto-conferência-e-eleição)).
 - **Padrão.** O ano abre com a última opção escolhida pelo jogador, se ainda estiver ao alcance; senão, com a rotina, e um aviso diz por quê.
 
 Antes de fechar o ano, a prévia (`compareHtml`) mostra, para cada opção ao alcance, quantos anos de vida saudável a conta tira, quanto disso neste ano, quanto dos mais pobres e de onde sai cada parte.
@@ -135,17 +153,35 @@ Nesta ordem:
 
 1. encerra os programas marcados;
 2. calcula os compromissos do ano;
-3. inicia os programas novos (uma ação pontual já agenda todo o ganho em `G.pending`);
-4. cada programa em funcionamento, inclusive os novos, planta o ganho de um ano em `G.pending`;
+3. inicia os programas novos (uma ação pontual já agenda todo o ganho em `G.pending`) e depois os pilotos;
+4. cada programa em funcionamento, inclusive os novos, planta o ganho de um ano em `G.pending`, com o bônus das combinações ativas;
 5. ordem judicial: o ganho do medicamento é agendado pelo perfil e a segunda parcela vira compromisso do ano seguinte (R$ 62,5 mi para a cidade e R$ 62,5 mi para a União);
 6. o ganho do ano é o que `G.pending` tem para este ano;
 7. a conta do ano passa pela cascata; o que a União paga (custeio e transferência) entra em `G.exported`;
-8. o apoio político é debitado;
+8. o apoio político é debitado; num ano de conferência, o compromisso assumido é conferido (+1 ou −1 de apoio);
 9. somam-se às perdas a erosão da rotina, as perdas adiadas que vencem agora e o dano da epidemia;
-10. o saldo do ano (ganhos − perdas) é somado em `G.cum`, e a saúde de cada grupo passa a ser $h_i + \text{cum}_i / P$.
+10. o saldo do ano (ganhos − perdas) é somado em `G.cum`, e a saúde de cada grupo passa a ser $h_i + \text{cum}_i / P$;
+11. no ano do prazo do pacto, a meta é conferida;
+12. em ano de eleição, se o apoio está em zero, o prefeito perde.
 
 - **Erosão** (`CITIES[*].erosion`): o que a rotina perde todo ano sem reforço, com programas ou sem. O reajuste da atenção básica reduz pela metade de forma permanente; negá-lo aumenta 30% por dois anos.
 - **Epidemia de dengue**: o dano cai pela metade se um programa com a tag `vig` funciona desde um ano anterior.
+
+### Política: pacto, conferência e eleição
+
+**Pacto com o Ministério** (`PACTO`), oferecido só no ano 1, com "Assinar o pacto" ou "Não assinar" (padrão). Meta: reduzir a distância pobres–ricos em `alvo` dias por pessoa, em relação a 2027, até o fim do ano `ate` (4 dias até 2031 em 10 anos; 2 dias até 2029 em 5 anos). Conferida no fim desse ano: cumprida, R$ 150 mi de repasse no ano seguinte, que pagam primeiro a conta, como a transferência federal; descumprida, R$ 60 mi a menos na margem do ano seguinte (entra em `G.pens`). Não assinar não tem efeito.
+
+**Conferência municipal de saúde** (`CONF`): nos anos 3 e 7 (no ano 3 em 5 anos). Cada região pede um compromisso para aquele ano, e o jogador assume um ou nenhum (padrão):
+
+| Compromisso | Cumprido se |
+|---|---|
+| Periferia (mais pobres) | algum programa novo completo (não piloto) tem ganho que favorece os mais pobres (`lean > 10`, já com o complemento) |
+| Bairros do meio | a fila de cirurgias e exames não pagou nada da conta do ano |
+| Centro (mais ricos) | nenhum programa foi encerrado no ano |
+
+Cumprido, +1 ponto de apoio (até 3); quebrado, −1 (até 0); sem compromisso, nada muda. O painel mostra, com a seleção do momento, se o compromisso está cumprido.
+
+**Eleição** nos anos de eleição municipal (2028, 2032, 2036): no fim do ano, depois do débito e da conferência, se o apoio é 0, o prefeito perde. Antes do último ano, o novo governo encerra no ano seguinte (`closedAt = ano + 1`, `closedBy = 'prefeito'`) o programa em funcionamento com o maior custeio municipal do ano seguinte por ano de vida ganho (`q·f`), e um aviso abre o ano seguinte. Esse encerramento não conta como encerramento do jogador no resumo. No último ano, a eleição só aparece no jornal e no retrato final. No modo de 5 anos, com 1 ponto de apoio no começo, cortar da fila em 2027 e de novo em 2028 já leva à derrota.
 
 ### 5. Os três jurados
 
@@ -163,10 +199,10 @@ A cada ano, o Contador comenta o saldo do ano, e a Ouvidora, o saldo ponderado, 
 
 | Duração | Contador | Ouvidora | Legado |
 |---|---:|---:|---:|
-| 10 anos | 70.000 | 85.000 | 20.000 |
+| 10 anos | 62.000 | 76.000 | 20.000 |
 | 5 anos | 22.000 | 25.000 | 20.000 |
 
-**Título.** O primeiro que se aplicar, nesta ordem. Δd é a variação da distância pobres–ricos em dias por pessoa (negativa = menos desigual); os limiares são 45.000 QALYs e 15 dias em 10 anos, ou 14.000 QALYs e 2,5 dias em 5 anos.
+**Título.** O primeiro que se aplicar, nesta ordem. Δd é a variação da distância pobres–ricos em dias por pessoa (negativa = menos desigual); os limiares são 40.000 QALYs e 15 dias em 10 anos, ou 14.000 QALYs e 2,5 dias em 5 anos.
 
 | Título | Condição |
 |---|---|
@@ -178,7 +214,13 @@ A cada ano, o Contador comenta o saldo do ano, e a Ouvidora, o saldo ponderado, 
 | O Plantador | Legado ≥ 80% da régua do Legado e saldo < limiar de QALYs |
 | O Morno | nenhum dos anteriores |
 
-A tela final mostra também a **herança** (programas que seguem funcionando e o custeio anual que deixam para o sucessor) e o **custo exportado** (o que a União pagou das contas da cidade, convertido em anos de vida saudável a R$ 40 mil, que o placar da cidade não cobra).
+A tela final mostra também a **herança** (programas que seguem funcionando e o custeio que deixam para o sucessor no primeiro ano dele, já reajustado) e o **custo exportado** (o que a União pagou das contas da cidade, convertido em anos de vida saudável a R$ 40 mil, que o placar da cidade não cobra).
+
+**Jogar de novo com o mesmo código.** Recomeça a partida com a mesma configuração e guarda a anterior (`GHOST`, em `G.ghost`): o painel do ano mostra o que foi decidido no mesmo ano da partida anterior, o gráfico da distância traz a linha tracejada dela, e a tela final compara as duas, com as decisões de cada ano.
+
+**Código da turma.** A tela final gera um código `CC1.` + JSON em base64 (nome, configuração, título, notas, placares, distância e as decisões de cada ano em forma curta: índice em `DECK`, `a` com complemento, `p` piloto, `j` ordem judicial, `x` carta extra; a opção que pagou; quantos encerrados). Em "Comparar a turma", na tela inicial, os códigos colados viram um gráfico Contador × Ouvidora, uma tabela e, para quem jogou a mesma partida, as decisões ano a ano lado a lado. Os códigos guardam índices de `DECK`: reordenar o baralho troca o nome das decisões em códigos antigos.
+
+**Imagem.** "Baixar imagem" desenha num canvas (1200 × 630, com as cores do tema) o título, as notas, os dias por grupo e a distância.
 
 ## Dificuldade
 
@@ -213,11 +255,16 @@ Acrescente um objeto a `DECK`:
 - Num programa, `imp + n·cus` deve ser igual a `cost` (n = `profile.length`). Sem `cus`, a carta é uma ação pontual. `h` e `hab` são opcionais; `hab` começa com "com", porque o card diz "a União paga 30% do custeio a partir de 2028, com …".
 - `tipo` deve ser um dos quatro que têm ícone em `ICON`; outro valor funciona, mas a carta fica sem ícone. Com `'infraestrutura'`, o ganho recebe o bônus `CITY.infra`.
 - `tags` e `addon` são opcionais. Use `'aps'` para a carta poder ser garantida na transferência federal e `'vig'` para amortecer a epidemia.
+- `eq`: equipes que a implantação exige (0 para remédio, campanha, aplicativo). `pilot` (opcional): como seria o piloto, em poucas palavras ("em duas unidades básicas"); só em programas (com `cus`) que dá para testar em pequena escala. Para a carta entrar numa combinação, ponha o `nm` dela em `alvo` ou `par` de `SINERGIAS`.
 - Se mudar o `nm` das cartas do tutorial, atualize as listas `want` em `dealYear` e os prefixos procurados em `coach`.
 
 ### Novo complemento
 
-Acrescente uma chave em `ADDON` com `t`, `d`, `cost`, `gain` e `mix:[w, POOR|RICH]`, e use essa chave no campo `addon` das cartas.
+Acrescente uma chave em `ADDON` com `t`, `d`, `cost`, `gain`, `mix:[w, POOR|RICH]` e, se exigir gente, `eq`, e use essa chave no campo `addon` das cartas.
+
+### Nova combinação
+
+Acrescente a `SINERGIAS` um objeto `{nm, bonus, par:[nomes], alvo:[nomes], txt}`. `txt` completa a frase do jornal "... passa a render X% a mais, porque {txt}".
 
 ### Novo dilema
 
@@ -225,7 +272,7 @@ Acrescente a `DILEMMAS` um objeto `{id, nm, txt, opts:[…]}`. Cada opção prec
 
 ### Novo evento
 
-Acrescente uma chave a `EVENTS` com `nm`, `good` e `txt`, mais os efeitos desejados (`marginF`, `fed`, `forced`, `extra`, `ensureTag`, `damage` + `mitigTag` + `mitigTxt`, `oc`). Um efeito novo precisa ser tratado em `dealYear` ou `closeYear`. Como as chaves de `EVENTS` são embaralhadas em `newGame`, acrescentar uma muda o calendário de todos os códigos de partida.
+Acrescente uma chave a `EVENTS` com `nm`, `good` e `txt`, mais os efeitos desejados (`marginF`, `fed`, `forced`, `extra`, `ensureTag`, `damage` + `mitigTag` + `mitigTxt`, `oc`, `eqMinus`). Um efeito novo precisa ser tratado em `dealYear` ou `closeYear`. Como as chaves de `EVENTS` são embaralhadas em `newGame`, acrescentar uma muda o calendário de todos os códigos de partida.
 
 ### Nova opção de corte
 
@@ -233,7 +280,7 @@ Acrescente uma chave a `EXITS` com os campos descritos no comentário acima da c
 
 ### Nova cidade
 
-Acrescente a `CITIES` (`nm`, `h0`, `erosion`, `srcAb`, `net`, `infra`, `desc`) e um botão `data-city` em `#cityPick`. O gráfico final ajusta o eixo sozinho se a saúde de partida ficar fora de 60–75 anos.
+Acrescente a `CITIES` (`nm`, `h0`, `erosion`, `srcAb`, `net`, `infra`, `eq`, `desc`) e um botão `data-city` em `#cityPick`. O gráfico final ajusta o eixo sozinho se a saúde de partida ficar fora de 60–75 anos.
 
 ### Textos do jornal
 
