@@ -21,9 +21,10 @@ if(adj){const P=JSON.parse(fs.readFileSync(adj,'utf8'));
 // ---------- quatro tipos de jogador (as cartas e o corte de cada ano; os dilemas são decididos pelo rejogo)
 const plan=(G,i,on)=>M.cardPlan(G.hand[i],on);
 const lean=sh=>(sh[0]+sh[1])-(sh[3]+sh[4]);
-function fill(G,order,addonOk){const cards=[],addons=[];let left=G.room;
-  for(const i of order){const a=M.addonOf(G.hand[i]);const pa=a&&addonOk(a)?plan(G,i,true).first:Infinity,p0=plan(G,i,false).first;
-    if(pa<=left+1e-9){cards.push(i);addons.push(i);left-=pa;}else if(p0<=left+1e-9){cards.push(i);left-=p0;}}
+// marca as cartas na ordem dada enquanto couberem no espaço e nas equipes; com complemento quando addonOk aceita e cabe
+function fill(G,order,addonOk){const cards=[],addons=[];let left=G.room,eq=G.eqCap;
+  for(const i of order){const a=M.addonOf(G.hand[i]),pa=a&&addonOk(a)?plan(G,i,true):null,p0=plan(G,i,false);
+    if(pa&&pa.first<=left+1e-9&&pa.eq<=eq){cards.push(i);addons.push(i);left-=pa.first;eq-=pa.eq;}else if(p0.first<=left+1e-9&&p0.eq<=eq){cards.push(i);left-=p0.first;eq-=p0.eq;}}
   return {cards,addons};}
 const firstOk=(G,ks)=>ks.find(k=>M.exitOk(G,k))||'ab';
 // custo por ano ganho que o jogador vê: com a equipe de avaliação, a estimativa local entra na conta

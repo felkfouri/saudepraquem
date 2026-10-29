@@ -3,7 +3,7 @@
    1. Paridade com o motor de referência (tests/motor.js). Cada partida é jogada na página, por cliques nos
       elementos reais, e no motor, com as mesmas decisões, tomadas por quatro políticas a partir do estado do motor.
       Compara, ano a ano: dilema, cartas na mesa, apoio político, opções de corte ao alcance, compromissos, espaço
-      para programas novos e os quatro placares; no fim, título, notas, herança e custo exportado.
+      para programas novos, equipes e os quatro placares; no fim, título, notas, herança e custo exportado.
    2. Partidas com cliques ao acaso: nenhum erro de JavaScript e nenhum ano que não feche.
    Nas duas partes, o jornal de cada ano não pode ter "undefined", "NaN" nem marcador de texto sem preencher ({p}).
    Uso: node tests/validar.js [códigos=4] [partidas ao acaso=20]
@@ -22,27 +22,32 @@ const num=t=>t==null?NaN:+String(t).replace(/[^\d,−-]/g,'').replace(',','.').r
 const plan=(G,i,on)=>M.cardPlan(G.hand[i],on);
 const icer=(G,i)=>G.hand[i].cost/G.hand[i].gain;
 const lean=sh=>(sh[0]+sh[1])-(sh[3]+sh[4]);
-// marca as cartas na ordem dada enquanto couberem; com complemento quando addonOk aceita e cabe
-function fill(G,order,addonOk){const cards=[],addons=[];let left=G.room;
-  for(const i of order){const a=M.addonOf(G.hand[i]);const pa=a&&addonOk(a)?plan(G,i,true).first:Infinity,p0=plan(G,i,false).first;
-    if(pa<=left+1e-9){cards.push(i);addons.push(i);left-=pa;}else if(p0<=left+1e-9){cards.push(i);left-=p0;}}
-  return {cards,addons};}
+// marca as cartas na ordem dada enquanto couberem no espaço e nas equipes; com complemento quando addonOk aceita e
+// cabe; com pilotOk, as cartas que aceitam piloto entram como piloto
+function fill(G,order,addonOk,pilotOk){const cards=[],addons=[],pilots=[];let left=G.room,eq=G.eqCap;
+  for(const i of order){const c=G.hand[i];
+    if(pilotOk&&M.canPilot(G,c)&&pilotOk(c)){const pp=M.pilotPlan(c);if(pp.first<=left+1e-9&&pp.eq<=eq){pilots.push(i);left-=pp.first;eq-=pp.eq;}continue;}
+    const a=M.addonOf(c),pa=a&&addonOk(a)?plan(G,i,true):null,p0=plan(G,i,false);
+    if(pa&&pa.first<=left+1e-9&&pa.eq<=eq){cards.push(i);addons.push(i);left-=pa.first;eq-=pa.eq;}else if(p0.first<=left+1e-9&&p0.eq<=eq){cards.push(i);left-=p0.first;eq-=p0.eq;}}
+  return {cards,addons,pilots};}
 const firstOk=(G,ks)=>ks.find(k=>M.exitOk(G,k))||'ab';
 // encerramentos entram antes de escolher as cartas: o custeio liberado aumenta o espaço do ano
 const withClose=(G,close)=>{G.closeSel=new Set(close);M.computeRoom(G);return close;};
 const POLICIES=[
   {name:'limiar, rotina',dilemma:G=>0,   // só abaixo de R$ 40 mil, pelo custo por ano ganho; sem complemento
     decide:G=>Object.assign(fill(G,G.hand.map((_,i)=>i).filter(i=>icer(G,i)*1e6<40000).sort((a,b)=>icer(G,a)-icer(G,b)||a-b),()=>false),{exit:'ab'})},
-  {name:'equidade, rodízio, encerra caros',dilemma:G=>(G.year+G.cfg.seed)%G.dilemma.opts.length,
+  // pilota o que tem evidência incerta, amplia o piloto que rendeu pelo menos 80%, assina o pacto, promete à periferia
+  {name:'equidade, pilotos, rodízio, encerra caros',dilemma:G=>(G.year+G.cfg.seed)%G.dilemma.opts.length,
     decide:G=>{const close=withClose(G,M.closable(G).filter(p=>(p.cus-p.cus*p.h)*1e6/(p.q*p.f)>40000).map(p=>p.id));
-      const sel=fill(G,G.hand.map((_,i)=>i).sort((a,b)=>lean(G.hand[b].sh)-lean(G.hand[a].sh)||a-b),a=>a.mix[1][0]>a.mix[1][4]);
-      const r=(G.year+G.cfg.seed)%KS.length;return Object.assign(sel,{exit:firstOk(G,KS.slice(r).concat(KS.slice(0,r))),close});}},
+      const order=G.hand.map((_,i)=>i).filter(i=>!G.hand[i].scaled||G.hand[i].scaled.pf>=0.8).sort((a,b)=>lean(G.hand[b].sh)-lean(G.hand[a].sh)||a-b);
+      const sel=fill(G,order,a=>a.mix[1][0]>a.mix[1][4],c=>c.ev!=='forte');
+      const r=(G.year+G.cfg.seed)%KS.length;return Object.assign(sel,{exit:firstOk(G,KS.slice(r).concat(KS.slice(0,r))),close},G.conf?{cons:'periferia'}:{},G.year===1?{pacto:true}:{});}},
   {name:'gasta tudo, fila',dilemma:G=>G.dilemma.opts.length-1,
-    decide:G=>Object.assign(fill(G,G.hand.map((_,i)=>i),()=>true),{exit:firstOk(G,['fila','baixo'])})},
+    decide:G=>Object.assign(fill(G,G.hand.map((_,i)=>i),()=>true),{exit:firstOk(G,['fila','baixo'])},G.conf?{cons:'meio'}:{},G.year===1?{pacto:true}:{})},
   {name:'encerra um por ano, prefeito',dilemma:G=>Math.min(1,G.dilemma.opts.length-1),
     decide:G=>{const cl=M.closable(G),close=withClose(G,cl.length?[cl[0].id]:[]);
       const sel=fill(G,G.hand.map((_,i)=>i).sort((a,b)=>plan(G,a,false).first-plan(G,b,false).first||a-b),()=>false);
-      return Object.assign(sel,{exit:firstOk(G,['pref','baixo','fila']),close});}}
+      return Object.assign(sel,{exit:firstOk(G,['pref','baixo','fila']),close},G.conf?{cons:'centro'}:{});}}
 ];
 
 function tilesOf(G){const s=M.popStats(G),d=(s.gap-s.gap0)*365;
@@ -53,7 +58,7 @@ const pageYear=page=>page.evaluate(()=>{
   const L=document.getElementById('gameLeft'),q=s=>L.querySelector(s),opts=L.querySelectorAll('[data-opt]');
   if(opts.length)return {dilemma:q('.event .hd').textContent};
   return {cards:[...L.querySelectorAll('.cards label.card')].map(el=>({locked:el.classList.contains('locked'),nm:el.querySelector('.nm').textContent})),
-    room:(q('.money .row.tot b')||{}).textContent,apoio:(q('.apoio')||{getAttribute:()=>''}).getAttribute('aria-label'),
+    room:(q('.money .row.tot b')||{}).textContent,eq:(q('.money .row.eq b')||{}).textContent,apoio:(q('.apoio')||{getAttribute:()=>''}).getAttribute('aria-label'),
     chips:[...L.querySelectorAll('[data-exit]')].map(b=>({k:b.dataset.exit,on:!b.disabled}))};
 });
 
@@ -93,7 +98,10 @@ async function parity(page,cfg,pol){
     if(st.chips.map(c=>c.k).join()!==kE.join())D(y,'opções visíveis na página '+st.chips.map(c=>c.k)+', no motor '+kE);
     for(const c of st.chips)if(c.on!==M.exitOk(G,c.k))D(y,'opção '+c.k+' ao alcance na página: '+c.on+'; no motor: '+M.exitOk(G,c.k));
     if(num(st.room)!==Math.round(G.room))D(y,'espaço na página '+st.room+', no motor '+G.room.toFixed(2));
+    if(parseInt(st.eq)!==G.eqCap)D(y,'equipes na página '+st.eq+', no motor '+G.eqCap);
     const sel=pol.decide(G);M.choose(G,sel);
+    if(sel.pacto!==undefined)await page.locator('[data-pacto="'+(sel.pacto?1:0)+'"]').click();
+    if(sel.cons)await page.locator('[data-cons="'+sel.cons+'"]').click();
     if(sel.close&&sel.close.length){
       if(!(await page.locator('#kSum').evaluate(s=>s.parentNode.open)))await page.locator('#kSum').click();
       for(const id of sel.close)await page.locator('#cl'+id).click();
@@ -102,6 +110,7 @@ async function parity(page,cfg,pol){
       if(Math.abs(num(kp))!==Math.round(G.K.mun))D(y,'compromissos na página '+kp+', no motor '+G.K.mun.toFixed(2));}
     for(const i of sel.cards)await page.locator('#hc'+i).click();
     for(const i of sel.addons)await page.locator('#ac'+i).click();
+    for(const i of sel.pilots||[])await page.locator('#pc'+i).click();
     await page.locator('[data-exit="'+sel.exit+'"]').click();
     const room=await page.locator('.money .row.tot b').textContent();
     if(num(room)!==Math.round(G.room))D(y,'espaço depois de encerrar na página '+room+', no motor '+G.room.toFixed(2));
@@ -135,10 +144,14 @@ async function random(page,r){
     const nCl=await page.locator('.money input[id^=cl]').count();
     if(nCl&&r()<0.4){if(!(await page.locator('#kSum').evaluate(s=>s.parentNode.open)))await page.locator('#kSum').click();
       await page.locator('.money input[id^=cl]').nth(Math.floor(r()*nCl)).click();}
+    if(await page.locator('[data-pacto]').count()&&r()<0.5)await page.locator('[data-pacto="1"]').click();
+    const cs=await page.locator('[data-cons]').all();if(cs.length)await pick(cs).click();
     const n=await page.locator('.cards label.card:not(.locked)').count();
-    for(let i=0;i<n;i++)if(r()<0.45){await page.locator('#hc'+i).click();if(await page.locator('#ac'+i).count()&&r()<0.5)await page.locator('#ac'+i).click();}
+    for(let i=0;i<n;i++){if(await page.locator('#pc'+i).count()&&r()<0.35){await page.locator('#pc'+i).click();continue;}
+      if(r()<0.45){await page.locator('#hc'+i).click();if(await page.locator('#ac'+i).count()&&r()<0.5)await page.locator('#ac'+i).click();}}
     const ex=await page.locator('[data-exit]:not([disabled])').all();if(ex.length&&r()<0.7)await pick(ex).click();
-    for(let i=n-1;i>=0&&await page.locator('#closeYear').isDisabled();i--)if(await page.locator('#hc'+i).isChecked())await page.locator('#hc'+i).click();
+    for(let i=n-1;i>=0&&await page.locator('#closeYear').isDisabled();i--){if(await page.locator('#hc'+i).isChecked())await page.locator('#hc'+i).click();
+      else if(await page.locator('#pc'+i).count()&&await page.locator('#pc'+i).isChecked())await page.locator('#pc'+i).click();}
     if(await page.locator('#closeYear').isDisabled())return tag+': o ano '+y+' não fecha nem sem cartas';
     await page.locator('#closeYear').click();
     const pp=await paperProblem(page);if(pp)return tag+', ano '+y+': '+pp;
