@@ -28,6 +28,12 @@ $$\ell_i = D \cdot \frac{o_i}{100}$$
 
 No laboratório, os perfis estão em `OC`: `igual` (20/20/20/20/20), `pobres` (30/25/20/15/10) e `ricos` (10/15/20/25/30).
 
+No jogo, a conta do ano é paga por partes (a margem do ano, a opção de corte escolhida e a rotina das unidades básicas), e cada fonte $p$ tem um multiplicador $m_p$: quantos QALYs ela deixa de produzir por R$ $k$. A margem vale 1; a rotina das unidades básicas, 1,1; a fila de cirurgias e exames, 0,85; outras pastas da prefeitura, 0,45; o corte do que rende pouco, 0,2. Cada parte tem também o próprio perfil de quem perde e pode vencer em parte no ano seguinte:
+
+$$D = \sum_p \frac{C_p \times 10^6}{k}\, m_p \qquad\qquad \ell_i = \sum_p \frac{C_p \times 10^6}{k}\, m_p \cdot \frac{o_{p,i}}{100}$$
+
+Os valores e a ordem em que as fontes pagam estão em [`jogo.md`](jogo.md#3-para-pagar-o-que-deixa-de-ser-feito-exits).
+
 O ganho do programa se reparte pelas participações $s_i$ escolhidas nos controles, normalizadas para somar 1:
 
 $$g_i = G \cdot \frac{s_i}{\sum_j s_j}$$
@@ -140,6 +146,7 @@ O programa continua aprovado em toda a faixa, mas cada vez com menos folga: o ga
 ## 9. Simplificações assumidas
 
 - O saldo de cada grupo é somado direto à QALE de partida ($h + \text{saldo}/P$), como se fosse um ganho permanente de expectativa de vida saudável. Não há desconto no tempo nem horizonte de vida.
-- O custo de oportunidade é linear: cada R$ $k$ desloca exatamente um QALY, qualquer que seja o tamanho do gasto.
+- O custo de oportunidade é linear: cada R$ $k$ desloca exatamente um QALY, qualquer que seja o tamanho do gasto. No jogo, os multiplicadores de cada fonte e os perfis de quem perde são hipóteses ilustrativas: que cortar a atenção básica tire mais saúde por real do que cortar procedimentos de baixo valor segue a literatura de custo de oportunidade, mas os números não foram estimados.
+- No jogo, o que a União paga (parte do custeio dos programas, transferência federal, metade da segunda parcela da ordem judicial) não desloca saúde na cidade. Esse dinheiro sai de outro lugar do SUS; o jogo mostra esse custo exportado no fim, sem cobrá-lo no placar.
 - Os grupos têm o mesmo tamanho e a desigualdade é medida só entre quintis. Diferenças dentro de cada quintil (raça/cor, região) ficam invisíveis.
 - Fora o caso do NHS, todos os números (QALE de partida, ganhos, custos, distribuições) são ilustrativos.
