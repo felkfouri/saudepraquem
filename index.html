@@ -25,6 +25,7 @@
   --ink:#0b3c3c;
   --good:#1f7a4d;
   --bad:#a13a2f;
+  --on-fill:#fff;      /* texto sobre botões e chips preenchidos */
   --q1:#0f6b6b; --q2:#3c8a86; --q3:#6ea8a3; --q4:#a3c7c2; --q5:#d2e4e1;
   --display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
   --body:"Source Serif 4", Georgia, "Times New Roman", serif;
@@ -34,7 +35,7 @@
   :root:not([data-theme="light"]){
     --bg:#0f1716; --bg-2:#141f1d; --card:#1a2624; --fg:#e6eeec; --muted:#9db0ab; --line:#2d3f3b;
     --accent:#5fc3bd; --accent-soft:#17403e; --loss:#e39a5c; --loss-soft:#3d2a18; --ink:#bfe3e0;
-    --good:#5fd08f; --bad:#f08a7a;
+    --good:#5fd08f; --bad:#f08a7a; --on-fill:#0f1716;
     --q1:#5fc3bd; --q2:#4aa39e; --q3:#3a827e; --q4:#2b625f; --q5:#1f4a48;
     color-scheme:dark;
   }
@@ -42,7 +43,7 @@
 :root[data-theme="dark"]{
   --bg:#0f1716; --bg-2:#141f1d; --card:#1a2624; --fg:#e6eeec; --muted:#9db0ab; --line:#2d3f3b;
   --accent:#5fc3bd; --accent-soft:#17403e; --loss:#e39a5c; --loss-soft:#3d2a18; --ink:#bfe3e0;
-  --good:#5fd08f; --bad:#f08a7a;
+  --good:#5fd08f; --bad:#f08a7a; --on-fill:#0f1716;
   --q1:#5fc3bd; --q2:#4aa39e; --q3:#3a827e; --q4:#2b625f; --q5:#1f4a48;
   color-scheme:dark;
 }
@@ -103,7 +104,7 @@ input[type=number],select{font:inherit;font-family:var(--mono);font-size:.95rem;
 select{font-family:var(--display)}
 .presets{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.1rem}
 .chip{font-family:var(--display);font-size:.84rem;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:.4rem .7rem;border-radius:999px;cursor:pointer}
-.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--on-fill)}
 .chip:focus-visible,input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .shares{display:grid;grid-template-columns:auto 1fr auto;gap:.35rem .6rem;align-items:center;font-family:var(--display);font-size:.88rem}
 .shares .q{font-weight:600}
@@ -153,7 +154,7 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
 @media(min-width:800px){.two{grid-template-columns:1fr 1fr}}
 .two > *{min-width:0}
 .chip.real{border-color:var(--loss);color:var(--loss)}
-.chip.real[aria-pressed=true]{background:var(--loss);color:#fff}
+.chip.real[aria-pressed=true]{background:var(--loss);color:var(--on-fill)}
 .src{font-size:.85rem}
 /* quiz */
 .qcard{display:grid;gap:.8rem}
@@ -165,13 +166,13 @@ footer{font-family:var(--display);font-size:.88rem;color:var(--muted)}
 .qbtn .who{font-size:.85rem;color:var(--muted)}
 .qprog{font-family:var(--mono);font-size:.8rem;color:var(--muted)}
 .qres .n{font-family:var(--mono);font-size:2.4rem;color:var(--accent);line-height:1}
-.btn{font:inherit;font-family:var(--display);font-weight:600;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:.65rem 1rem;cursor:pointer}
+.btn{font:inherit;font-family:var(--display);font-weight:600;background:var(--accent);color:var(--on-fill);border:0;border-radius:8px;padding:.65rem 1rem;cursor:pointer}
 a.btn{text-decoration:none;display:inline-block}
 .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
 .btn:disabled,.chip:disabled{opacity:.5;cursor:not-allowed}
 /* jogo */
 .yr{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem}
-.yr .y{font-family:var(--display);font-weight:800;font-size:1.6rem;letter-spacing:-.01em}
+.yr .y{font-family:var(--display);font-weight:800;font-size:1.6rem;letter-spacing:-.01em;margin:0}
 .yr .of{font-family:var(--mono);font-size:.85rem;color:var(--muted)}
 .event{border-left:4px solid var(--loss);background:var(--loss-soft);padding:.7rem .9rem;border-radius:0 6px 6px 0;margin:.6rem 0 .9rem;font-size:.95rem}
 .event.good{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,transparent)}
@@ -247,12 +248,67 @@ a.btn{text-decoration:none;display:inline-block}
 .final textarea{width:100%;font:inherit;font-family:var(--mono);font-size:.82rem;border:1px solid var(--line);border-radius:6px;padding:.5rem;background:var(--bg);color:var(--fg);min-height:7em;resize:vertical}
 .mini{display:inline-flex;gap:1px;vertical-align:middle;margin-left:.3rem}
 .mini i{display:inline-block;width:5px;background:var(--accent);align-self:flex-end}
+/* barra de navegação: fixa no topo, aparece quando o cabeçalho da vista sai da tela; marca a seção atual e o progresso da leitura */
+html{scroll-padding-top:4rem}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+[tabindex="-1"]:focus{outline:none}
+.barra{position:fixed;top:0;left:0;right:0;z-index:20;background:color-mix(in srgb,var(--bg) 94%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:env(safe-area-inset-top,0px) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));font-family:var(--display);transform:translateY(-100%);visibility:hidden}
+.barra.on{transform:none;visibility:visible}
+@media (prefers-reduced-motion:no-preference){.barra{transition:transform .2s ease,visibility 0s linear .2s}.barra.on{transition:transform .2s ease}}
+.barra-in{display:flex;align-items:center;gap:.9rem;height:3.1rem}
+.barra .brand{font-weight:800;font-size:.95rem;letter-spacing:-.01em;color:var(--fg);text-decoration:none;white-space:nowrap}
+.barra .brand .short{display:none}
+.barra .secs{position:relative;display:flex;align-items:center;gap:1.1rem;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;padding:.35rem 1.2rem .35rem .8rem;-webkit-mask-image:linear-gradient(90deg,transparent,#000 .8rem,#000 calc(100% - 1.2rem),transparent);mask-image:linear-gradient(90deg,transparent,#000 .8rem,#000 calc(100% - 1.2rem),transparent)}
+.barra .secs::-webkit-scrollbar{display:none}
+@media (prefers-reduced-motion:no-preference){.barra .secs{scroll-behavior:smooth}}
+.barra .secs a{font-size:.85rem;color:var(--muted);text-decoration:none;white-space:nowrap;padding:.2rem 0;border-bottom:2px solid transparent}
+.barra .secs a:hover{color:var(--accent)}
+.barra .secs a[aria-current]{color:var(--accent);border-color:var(--accent);font-weight:600}
+.barra .gname{font-weight:700;font-size:.9rem;white-space:nowrap}
+.barra .gstat{font-family:var(--mono);font-size:.8rem;color:var(--muted);white-space:nowrap}
+.barra .gstat b{font-weight:500;color:var(--fg)}
+.barra .gjumps{display:flex;gap:1.1rem}
+@media(min-width:940px){.barra .gjumps{display:none}}
+.barra .btn{font-size:.85rem;padding:.4rem .8rem;text-decoration:none;white-space:nowrap;flex:none}
+.barra .prog{position:absolute;left:0;right:0;bottom:-1px;height:2px}
+.barra .prog i{display:block;height:100%;background:var(--accent);transform-origin:0 50%;transform:scaleX(0)}
+@media(max-width:640px){
+  .barra .brand .full{display:none}
+  .barra .brand .short{display:inline-grid;place-items:center;width:2rem;height:2rem;border:1px solid var(--line);border-radius:6px;font-size:1.05rem}
+  .barra[data-mode="jogo"] .brand,.barra .gname,.barra .gstat .of{display:none}
+}
+.foot-nav{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;margin:0 0 .8rem}
+@media print{.barra{display:none}}
 </style>
 </head>
 <body>
-
+<nav class="barra" id="barra" aria-label="Navegação">
+  <div class="wrap barra-in">
+    <a class="brand" href="#topo" aria-label="Saúde para quem? (início do guia)"><span class="full">Saúde para quem?</span><span class="short" aria-hidden="true">↑</span></a>
+    <div class="secs" data-view="guia">
+      <a href="#conta">A conta</a>
+      <a href="#cego">O que ela não vê</a>
+      <a href="#pergunta">A pergunta</a>
+      <a href="#lab">Laboratório</a>
+      <a href="#meu-eps">Seu ε</a>
+      <a href="#gestor">O jogo</a>
+      <a href="#brasil">No Brasil</a>
+      <a href="#glossario">Glossário</a>
+      <a href="#refs">Referências</a>
+    </div>
+    <div class="secs" data-view="jogo" hidden>
+      <span class="gname">Cobertor Curto</span>
+      <span class="gstat" id="gStat"></span>
+      <span class="gjumps" id="gJumps" hidden><a href="#gameLeft" id="gJumpL">Decisões</a><a href="#gameRight">População</a></span>
+    </div>
+    <a class="btn" data-view="guia" href="#jogo">Jogar</a>
+    <a class="btn ghost" data-view="jogo" href="#guia" hidden>← Guia</a>
+  </div>
+  <div class="prog" data-view="guia" aria-hidden="true"><i id="barProg"></i></div>
+</nav>
+<main>
 <div id="guia">
-<header class="band hero">
+<header class="band hero" id="topo">
   <div class="wrap">
     <div>
       <p class="eyebrow">Guia interativo · Análise econômica em saúde</p>
@@ -265,7 +321,7 @@ a.btn{text-decoration:none;display:inline-block}
         <a href="#pergunta">A pergunta a mais</a>
         <a href="#lab">Laboratório</a>
         <a href="#meu-eps">Qual é o seu ε?</a>
-        <a href="#jogo">Cobertor Curto</a>
+        <a href="#gestor">Cobertor Curto</a>
         <a href="#brasil">E no Brasil?</a>
         <a href="#glossario">Glossário</a>
         <a href="#refs">Referências</a>
@@ -537,6 +593,7 @@ a.btn{text-decoration:none;display:inline-block}
       <li>Brasil. Ministério da Saúde. <em>Diretrizes metodológicas: diretriz de avaliação econômica</em>. 2. ed. Brasília; 2014.</li>
     </ol>
     <footer style="margin-top:2.5rem;border-top:1px solid var(--line);padding-top:1rem">
+      <p class="foot-nav"><a href="#topo">↑ Voltar ao início</a><a href="#jogo">Jogar Cobertor Curto</a></p>
       <p>Produto técnico desenvolvido para a disciplina de Análise Econômica em Saúde, programa de pós-graduação da Faculdade de Medicina da USP, 2026. Autor: Felipe. Os números do laboratório são ilustrativos e não representam avaliações reais de tecnologias.</p>
     </footer>
   </div>
@@ -546,7 +603,7 @@ a.btn{text-decoration:none;display:inline-block}
 <div id="jogo" hidden>
 <header class="band" style="padding-block:1.4rem 1rem;border-bottom:1px solid var(--line)">
   <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
-    <div><p class="eyebrow" style="margin:0 0 .2rem">Saúde para quem? · Jogo · dez anos na secretaria</p><h2 style="margin:0;font-size:1.5rem">Cobertor Curto</h2></div>
+    <div><p class="eyebrow" style="margin:0 0 .2rem">Saúde para quem? · Jogo · dez anos na secretaria</p><h1 style="margin:0;font-size:1.5rem">Cobertor Curto</h1></div>
     <a class="btn ghost" href="#guia">← Voltar ao guia</a>
   </div>
 </header>
@@ -643,13 +700,14 @@ a.btn{text-decoration:none;display:inline-block}
   </div>
 </section>
 </div>
+</main>
 
 <script>
 /* Todo o comportamento da página, em uma IIFE sem dependências. Seções, nesta ordem:
    1. Núcleo da DCEA (ede, evaluate) e estado do laboratório
    2. Laboratório: controles, render() e gráficos SVG
    3. Teste "Qual é o seu ε?"
-   4. Rotas: #jogo mostra o jogo, qualquer outro hash mostra o guia
+   4. Rotas (#jogo, ou âncora dentro do jogo, mostra o jogo; o resto, o guia) e barra de navegação fixa
    5. Jogo Cobertor Curto: dados (cidades, cards, dilemas, eventos), motor (newGame, dealYear, closeYear) e telas
    Unidades: saúde por grupo em QALYs absolutos (cada grupo tem POP pessoas); saúde de partida (QALE) em anos
    por pessoa; custos em R$ milhões. Os vetores de 5 posições vão sempre dos mais pobres (0) aos mais ricos (4).
@@ -876,20 +934,66 @@ a.btn{text-decoration:none;display:inline-block}
     $('quizBody').innerHTML='<div class="qcard qres"><p class="qprog">Resultado</p><div class="n">ε ≈ '+fmt1.format(Math.min(eps,20))+'</div><p style="margin:0">'+txt+' '+cmp+'</p>'+
       '<div style="display:flex;gap:.6rem;flex-wrap:wrap"><button class="btn" id="qUse" type="button">Usar este ε no laboratório</button><button class="btn ghost" id="qAgain" type="button">Refazer</button></div>'+
       '<p class="hint" style="margin:0">A conversão usa a razão entre a saúde de partida dos dois grupos no cenário brasileiro ilustrativo. Mude as diferenças de saúde e o mesmo "trade-off" dá outro ε: o parâmetro não vive sozinho.</p></div>';
-    $('qUse').addEventListener('click',()=>{state.eps=Math.round(Math.min(eps,20)*2)/2;$('eps').value=state.eps;render();$('lab').scrollIntoView({behavior:'smooth'});});
+    $('qUse').addEventListener('click',()=>{state.eps=Math.round(Math.min(eps,20)*2)/2;$('eps').value=state.eps;render();$('lab').scrollIntoView();focusEl($('lab').querySelector('h2'));});
     $('qAgain').addEventListener('click',()=>{qi=0;lastB=null;quizQ();});
   }
   quizQ();
 
   /* ---------- Rotas: guia / jogo ---------- */
-  let view=null; // true = jogo visível; null antes da primeira rota
+  // Cada vista guarda a rolagem e o último foco: "Voltar ao guia" (ou o Voltar do navegador) devolve o leitor ao ponto onde estava.
+  let view=null;
+  const pos={guia:null,jogo:null},last={guia:null,jogo:null},TITLE=document.title;
+  function instant(fn){const r=document.documentElement,b=r.style.scrollBehavior;r.style.scrollBehavior='auto';getComputedStyle(r).scrollBehavior;fn();r.style.scrollBehavior=b;} // lê o estilo para o navegador aplicar o 'auto' antes de rolar
+  function focusEl(el){if(!el)return;if(!el.matches('a[href],button,input,select,textarea,[tabindex]'))el.setAttribute('tabindex','-1');el.focus({preventScroll:true});}
   function route(){
-    const j=location.hash==='#jogo';
-    $('jogo').hidden=!j;$('guia').hidden=j;
-    if(view===null?j:view!==j)window.scrollTo(0,0); // troca de tela começa do topo; âncoras do guia rolam normalmente
-    view=j;
+    const id=decodeURIComponent(location.hash.slice(1)),t=id?document.getElementById(id):null;
+    const v=(id==='jogo'||(t&&$('jogo').contains(t)))?'jogo':'guia';
+    if(v===view)return;
+    const first=view===null;
+    view=v;
+    $('jogo').hidden=v!=='jogo';$('guia').hidden=v!=='guia';
+    document.title=v==='jogo'?'Cobertor Curto · '+TITLE:TITLE;
+    bar.dataset.mode=v;
+    bar.querySelectorAll('[data-view]').forEach(e=>e.hidden=e.dataset.view!==v);
+    if(first){if(v==='jogo')instant(()=>window.scrollTo(0,0));}
+    else{
+      // link para uma seção (ou para o topo) vai até ela; o resto volta para onde o leitor estava nesta vista
+      const toT=t&&t!==$(v)&&(id==='topo'||pos[v]===null),back=last[v];
+      instant(()=>{if(toT)t.scrollIntoView();else window.scrollTo(0,pos[v]||0);});
+      focusEl(toT?t:onScreen(back)?back:[...$(v).querySelectorAll('h1,h2,h3')].find(onScreen)||$(v).querySelector('h1'));
+    }
+    onScroll();
   }
   window.addEventListener('hashchange',route);
+  // o navegador tira o foco do link ao seguir uma âncora, então o último foco de cada vista é anotado aqui
+  document.addEventListener('focusin',e=>{if(view&&$(view).contains(e.target))last[view]=e.target;});
+  function onScreen(el){if(!el||!el.isConnected||el.closest('[hidden]'))return false;const r=el.getBoundingClientRect();return r.height>0&&r.bottom>0&&r.top<innerHeight;}
+
+  /* ---------- Barra de navegação ---------- */
+  const bar=$('barra'),secs=[...bar.querySelectorAll('.secs[data-view="guia"] a')],secEl=secs.map(a=>$(a.hash.slice(1)));
+  let ticking=false,cur=null;
+  function onScroll(){
+    ticking=false;
+    if(view)pos[view]=window.scrollY;
+    const head=view==='jogo'?$('jogo').querySelector('header'):document.querySelector('.hero .toc');
+    bar.classList.toggle('on',head.getBoundingClientRect().bottom<0);
+    if(view!=='guia')return;
+    const max=document.documentElement.scrollHeight-innerHeight;
+    $('barProg').style.transform='scaleX('+(max>0?Math.min(1,scrollY/max):0)+')';
+    // seção atual: a última cujo topo já passou de 30% da tela (ou a última, no fim da página)
+    let k=-1;secEl.forEach((el,i)=>{if(el.getBoundingClientRect().top<=innerHeight*.3)k=i;});
+    if(scrollY>=max-2)k=secEl.length-1;
+    if(k===cur)return;
+    cur=k;secs.forEach((a,i)=>{if(i===k)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current');});
+    const a=secs[k];if(a){const box=a.parentNode;box.scrollLeft=a.offsetLeft-(box.clientWidth-a.offsetWidth)/2;}
+  }
+  window.addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(onScroll);}},{passive:true});
+  window.addEventListener('resize',onScroll);
+  // no celular os dois painéis do jogo ficam um embaixo do outro: atalhos para ir de um ao outro sem sujar o histórico
+  $('gJumps').querySelectorAll('a').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const t=$(a.hash.slice(1));t.scrollIntoView();focusEl(t.querySelector('.yr .y,.final .n,h3')||t);}));
+  function setPlaying(on){$('gJumps').hidden=!on;if(!on)$('gStat').textContent='';}
+  // painel do ano trocado por inteiro: leva o leitor (e o foco) ao começo dele em vez de deixá-lo no meio da página
+  function toTurn(el){const L=$('gameLeft');if(L.getBoundingClientRect().top<bar.offsetHeight)L.scrollIntoView();focusEl(el);}
 
   /* ---------- Jogo: dez anos de gestão ---------- */
   // Y0: primeiro ano do mandato; GL: limiar (R$/QALY) que converte gasto em saúde deslocada; BASE_BUDGET: R$ mi por ano
@@ -1023,7 +1127,7 @@ a.btn{text-decoration:none;display:inline-block}
   $('cityDesc').textContent=CITIES.capital.desc;
   $('diffDesc').textContent=DIFFD.normal;
   $('gEps').addEventListener('input',e=>{cfg.eps=+e.target.value;$('gEpsVal').textContent=fmt1.format(cfg.eps);});
-  $('gBegin').addEventListener('click',()=>{cfg.tutorial=$('gTut').checked;cfg.showMath=$('gMath').checked;CITY=CITIES[cfg.city];H0G=CITY.h0;EROSION=CITY.erosion;cfg.seed=Math.max(1,Math.min(9999,Math.floor(+$('gSeed').value)||1));$('gSeed').value=cfg.seed;newGame();$('gStart').hidden=true;$('gPlay').hidden=false;window.scrollTo(0,0);});
+  $('gBegin').addEventListener('click',()=>{cfg.tutorial=$('gTut').checked;cfg.showMath=$('gMath').checked;CITY=CITIES[cfg.city];H0G=CITY.h0;EROSION=CITY.erosion;cfg.seed=Math.max(1,Math.min(9999,Math.floor(+$('gSeed').value)||1));$('gSeed').value=cfg.seed;newGame();$('gStart').hidden=true;$('gPlay').hidden=false;setPlaying(true);instant(()=>window.scrollTo(0,0));focusEl($('gameLeft').querySelector('.yr .y'));});
 
   function newGame(){
     const r=rng(cfg.seed*7919+cfg.years);
@@ -1148,16 +1252,21 @@ a.btn{text-decoration:none;display:inline-block}
     }
     return '<div class="coach"><p class="eyebrow" style="margin:0 0 .3rem">Tutorial · passo '+step+' de '+total+'</p><p style="margin:0">'+txt+'</p>'+(btn?'<button class="btn ghost" type="button" id="tutAck" data-k="'+btn[0]+'" style="margin-top:.6rem">'+btn[1]+'</button>':'')+'</div>';
   }
+  // re-render troca o painel inteiro: devolve o foco ao controle equivalente (ou ao tutorial, ou ao ano) para o teclado não voltar ao topo da página
+  function focusKey(L){const ae=document.activeElement;if(!L.contains(ae))return null;return ae.id?'#'+ae.id:ae.dataset.src?'[data-src="'+ae.dataset.src+'"]':'';}
+  function refocus(L,k){if(k===null)return;let el=k&&L.querySelector(k);if(!el||el.disabled)el=L.querySelector('.coach')||L.querySelector('.yr .y');focusEl(el);}
   function renderYear(){
-    const L=$('gameLeft');const spent=yrSpent(),over=spent>G.budget;
+    const L=$('gameLeft');const spent=yrSpent(),over=spent>G.budget,fk=focusKey(L);
+    $('gStat').innerHTML='<b>'+(Y0+G.year-1)+'</b><span class="of"> · ano '+G.year+' de '+cfg.years+'</span>';$('gJumpL').textContent='Decisões';
     let h='<div class="tl" aria-label="Anos do mandato">'+Array.from({length:cfg.years},(_,k)=>{const st=k<G.years.length?(G.years[k]>=0?'pos':'neg'):(k===G.year-1?'cur':'');return '<span class="'+st+'" title="'+(Y0+k)+'"></span>';}).join('')+'</div>';
-    h+='<div class="yr"><span class="y">'+(Y0+G.year-1)+'</span><span class="of">ano '+G.year+' de '+cfg.years+' · orçamento R$ '+fmt.format(G.budget)+' mi · partida nº '+cfg.seed+' · '+CITY.nm+'</span></div>';
+    h+='<div class="yr"><h2 class="y">'+(Y0+G.year-1)+'</h2><span class="of">ano '+G.year+' de '+cfg.years+' · orçamento R$ '+fmt.format(G.budget)+' mi · partida nº '+cfg.seed+' · '+CITY.nm+'</span></div>';
     if(G.maintTxt)h+='<p class="hint" style="margin:0 0 .5rem">'+G.maintTxt+'</p>';
     if(!G.dilemmaDone){
       const D=G.dilemma;
       h+=coach();
       h+='<div class="event"><span class="ttl">Antes do orçamento</span><b class="hd">'+D.nm+'</b><p>'+D.txt+'</p></div><div class="qopt" style="grid-template-columns:1fr">'+D.opts.map((o,k)=>'<button class="qbtn" type="button" data-opt="'+k+'"><b style="font-family:var(--display)">'+o.t+'</b><br><span class="who">'+(cfg.diff==='dificil'?(o.n||o.d):o.d)+'</span></button>').join('')+'</div>';
       L.innerHTML=h;
+      refocus(L,fk);
       return;
     }
     h+=coach();
@@ -1181,9 +1290,10 @@ a.btn{text-decoration:none;display:inline-block}
       h+='<div><button class="btn" id="nextYear" type="button">'+(G.year<cfg.years?'Ir para '+(Y0+G.year):'Ver o retrato de '+(Y0+cfg.years))+'</button></div>';
     }
     L.innerHTML=h;
+    refocus(L,fk);
   }
   function nextYear(){
-    if(G.year<cfg.years){G.year++;dealYear();renderYear();renderPop();window.scrollTo({top:$('gPlay').offsetTop,behavior:'smooth'});}
+    if(G.year<cfg.years){G.year++;dealYear();renderYear();renderPop();toTurn($('gameLeft').querySelector('.yr .y'));}
     else renderFinal();
   }
   // o painel esquerdo é redesenhado inteiro a cada ação, então os eventos são tratados por delegação
@@ -1196,7 +1306,7 @@ a.btn{text-decoration:none;display:inline-block}
     else if(b.id==='closeYear')closeYear();
     else if(b.id==='nextYear')nextYear();
     else if(b.id==='copyShare')copyShare(b);
-    else if(b.id==='replay'){$('gPlay').hidden=true;$('gStart').hidden=false;$('gSeed').value=newSeed();window.scrollTo(0,0);}
+    else if(b.id==='replay'){$('gPlay').hidden=true;$('gStart').hidden=false;$('gSeed').value=newSeed();setPlaying(false);instant(()=>window.scrollTo(0,0));focusEl($('gStart').querySelector('h2'));}
   });
   $('gameLeft').addEventListener('change',e=>{
     const m=/^(hc|ac)(\d+)$/.exec(e.target.id);if(!m)return;
@@ -1218,7 +1328,7 @@ a.btn{text-decoration:none;display:inline-block}
     if(o.erosionTemp)G.erosionTemp={f:o.erosionTemp.f,until:G.year+o.erosionTemp.years-1};
     if(o.negotiate){const ng=o.negotiate;if(G.r()<0.5){for(let i=0;i<N;i++)G.cum[i]+=ng.gainQ[i];G.recurring.push({amt:ng.amt,until:999,nm:'UPA negociada'});G.negTxt='O deputado topou: a UPA vai para a periferia.';}else{G.penalty+=ng.penalty;G.penaltyWhy='o deputado não gostou da contraproposta da UPA e fez campanha contra a secretaria.';G.negTxt='O deputado se ofendeu e levou a emenda embora.';}}
     G.dilemmaNote=o.note||'';G.dilemmaPick={nm:D.nm,opt:o.t+(G.negTxt?' ('+G.negTxt+')':'')};
-    renderYear();renderPop();
+    renderYear();renderPop();toTurn($('gameLeft').querySelector('.yr .y'));
   }
   // fecha o ano: sorteia a realização dos cards, agenda os ganhos (profile), cobra o custo de oportunidade e a erosão,
   // aplica penalidades e o evento, e registra o jornal, os jurados e a planilha da DCEA
@@ -1257,7 +1367,7 @@ a.btn{text-decoration:none;display:inline-block}
     const paper=paperData(picks,chosenN,netY,gapB,gapA,negTxt);
     G.log.push({c,o,head,paper,chosenN,moodO:gapA<gapB-0.05?1:gapA>gapB+0.05?-1:0,real:realTxt.join('; ')+(realTxt.length?'.':''),netY,ewY,math:{gainQ:gainQ.slice(),lossQ:lossQ.slice(),hB,hA,e0,e1,a0:1-e0/mean(hB),a1:1-e1/mean(hA),spent,displaced,ocd:ocd.slice(),eros:EROSION.map(x=>x*ef)}});
     G.byYear.push({year:Y0+G.year-1,picks:picks.map(p=>p.nm),ev:G.ev?G.ev.nm:null,dil:G.dilemmaPick||null});G.dilemmaPick=null;G.years.push(netY);
-    G.closed=true;renderYear();renderPop();
+    G.closed=true;renderYear();renderPop();toTurn($('gameLeft').querySelector('.paper')||$('gameLeft').querySelector('.yr .y'));
   }
   const BREVES=[
     {k:'Cidade',t:'Gato é resgatado de árvore por equipe do SAMU. "Ele estava estável", informou o socorrista. O dono agradeceu e pediu para não publicar o nome do gato.'},
@@ -1394,7 +1504,8 @@ a.btn{text-decoration:none;display:inline-block}
       '<p style="font-size:.95rem">Você financiou '+G.funded.length+' programas. Notas de 0 a 10: Contador e Ouvidora dão 10 a um saldo de '+fmt.format(scale)+' anos de vida saudável pela própria régua; Legado dá 10 a '+fmt.format(Math.round(scale*0.5))+' anos contratados para depois do mandato.</p>'+
       '<textarea id="shareTxt" readonly aria-label="Resumo para compartilhar">'+share+'</textarea>'+
       '<div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem"><button class="btn ghost" id="copyShare" type="button">Copiar resumo</button><button class="btn" id="replay" type="button">Nova partida</button><a class="btn ghost" href="#guia">Voltar ao guia</a></div></div>';
-    $('gRTitle').textContent='Sua população em '+yEnd;
+    $('gRTitle').textContent='Sua população em '+yEnd;$('gStat').innerHTML='<b>'+yEnd+'</b><span class="of"> · fim de mandato</span>';$('gJumpL').textContent='Retrato';
+    toTurn($('gameLeft').querySelector('.final .n'));
   }
   // a API de área de transferência só existe em https/localhost; fora disso, seleciona o texto para Ctrl+C
   function copyShare(b){

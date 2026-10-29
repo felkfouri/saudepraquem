@@ -41,13 +41,15 @@ Dentro de `index.html`:
 | Parte | O que contém |
 |---|---|
 | `<style>` | variáveis de cor (tema claro e escuro), layout do guia, laboratório, teste e jogo |
+| `<nav id="barra">` | barra fixa que aparece ao rolar: seções do guia com a atual destacada e progresso de leitura; no jogo, ano corrente e atalhos entre os painéis |
 | `<div id="guia">` | as cinco partes do texto, os painéis do laboratório e do teste, glossário e referências |
 | `<div id="jogo">` | tela inicial ("Antes de assumir") e mesa de jogo (`#gameLeft`, `#gameRight`) |
-| `<script>` | uma função autoexecutável, em cinco seções comentadas: núcleo da DCEA, laboratório, teste, rotas e jogo |
+| `<script>` | uma função autoexecutável, em cinco seções comentadas: núcleo da DCEA, laboratório, teste, rotas e barra de navegação, e jogo |
 
 Alguns comportamentos gerais:
 
-- **Rotas.** O hash `#jogo` mostra o jogo e esconde o guia; qualquer outro hash mostra o guia (`route()`).
+- **Rotas.** O hash `#jogo`, ou uma âncora dentro do jogo, mostra o jogo e esconde o guia; qualquer outro hash mostra o guia (`route()`). Cada vista guarda a posição de rolagem e o último foco, então "Voltar ao guia" (ou o Voltar do navegador) devolve o leitor ao ponto onde estava.
+- **Foco e teclado.** Como os painéis do jogo são redesenhados por inteiro, `refocus` devolve o foco ao controle equivalente e `toTurn` leva o leitor ao começo do painel quando o ano muda.
 - **Tema.** O tema escuro segue o sistema operacional. Para forçar um tema, use `<html data-theme="dark">` ou `data-theme="light"`. Todas as cores vêm das variáveis CSS do topo do arquivo.
 - **Renderização.** Gráficos são SVG montados como texto. O laboratório redesenha tudo a cada mudança nos controles (cerca de 1 ms). No jogo, o painel esquerdo é redesenhado a cada ação, e os cliques são tratados por delegação de eventos no próprio painel.
 - **Dados.** Propostas, complementos, dilemas, eventos, cidades e cenários do laboratório são constantes no início de cada seção do script. Os comentários acima de cada uma descrevem os campos; [`docs/jogo.md`](docs/jogo.md) explica como acrescentar itens.
