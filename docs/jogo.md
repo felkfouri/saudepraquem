@@ -65,9 +65,9 @@ nextYear()        próximo ano, ou renderFinal() no último
 
 **Espaço para programas novos** = transferência (do evento e do pacto) + margem + `EXTRA` − compromissos − ordem judicial − dilema, com mínimo zero. As cartas marcadas precisam caber nele: se passarem, "Fechar o ano" fica desabilitado até o jogador desmarcar algo ou encerrar um programa. Compromissos, ordem judicial e dilema são pagos sempre, mesmo que passem do limite (o painel avisa quando isso acontece), então nenhuma partida trava.
 
-**Equipes.** Além do dinheiro, as cartas marcadas precisam caber nas equipes do ano (`G.eqCap`): quantas a secretaria consegue contratar e treinar para implantar programas novos. São `CITY.eq` (5 na capital, 3 na cidade média, 4 na envelhecida), mais 1 por ano depois de conceder o reajuste da atenção básica (`eqUp`) e menos 2 no ano da greve (`eqMinus`). Cada carta pede `eq` equipes; a busca ativa pede mais 1 (`ADDON.busca.eq`); um piloto pede 1 se a carta pede alguma. Equipes não acumulam de um ano para o outro e não são gastas pelos programas que já funcionam. Se a seleção passar das equipes, "Fechar o ano" fica desabilitado.
+**Equipes.** Além do dinheiro, as cartas marcadas precisam caber nas equipes do ano (`G.eqCap`): quantas a secretaria consegue contratar e treinar para implantar programas novos. São `CITY.eq` (5 na capital, 3 na cidade média, 4 na envelhecida), menos 2 no ano da greve (`eqMinus`); um dilema pode somar equipes daqui em diante com `eqUp` (nenhum usa hoje). Cada carta pede `eq` equipes; a busca ativa pede mais 1 (`ADDON.busca.eq`); um piloto pede 1 se a carta pede alguma. Equipes não acumulam de um ano para o outro e não são gastas pelos programas que já funcionam. Se a seleção passar das equipes, "Fechar o ano" fica desabilitado.
 
-A margem é o quanto a receita da saúde cresce no ano. Sem programa novo, ela reforçaria a rede; gasta em outra coisa, desloca saúde como qualquer gasto (ver [3](#3-para-pagar-o-que-deixa-de-ser-feito-exits)). Os cortes vindos de dilemas (reordenar a fila: R$ 40 mi; emenda negociada que dá errado: R$ 60 mi) saem da margem do ano seguinte, com piso zero, e o aviso lista cada motivo (`G.pens`).
+A margem é o quanto a receita da saúde cresce no ano. Sem programa novo, ela reforçaria a rede; gasta em outra coisa, desloca saúde como qualquer gasto (ver [3](#3-para-pagar-o-que-deixa-de-ser-feito-exits)). Os cortes vindos de dilemas (reordenar a fila e emenda negociada que dá errado: R$ 40 mi cada) saem da margem do ano seguinte, com piso zero, e o aviso lista cada motivo (`G.pens`).
 
 ### 2. As cartas e a ficha de cada uma
 
@@ -164,7 +164,7 @@ Nesta ordem:
 11. no ano do prazo do pacto, a meta é conferida;
 12. em ano de eleição, se o apoio está em zero, o prefeito perde.
 
-- **Erosão** (`CITIES[*].erosion`): o que a rotina perde todo ano sem reforço, com programas ou sem. O reajuste da atenção básica reduz pela metade de forma permanente; negá-lo aumenta 30% por dois anos.
+- **Erosão** (`CITIES[*].erosion`): o que a rotina perde todo ano sem reforço, com programas ou sem. Negar o reajuste da atenção básica aumenta a erosão em 10% naquele ano.
 - **Epidemia de dengue**: o dano cai pela metade se um programa com a tag `vig` funciona desde um ano anterior.
 
 ### Política: pacto, conferência e eleição
@@ -192,6 +192,21 @@ Cumprido, +1 ponto de apoio (até 3); quebrado, −1 (até 0); sem compromisso, 
 | **Legado** | QALYs já plantados que ainda vão aparecer, menos as perdas adiadas que ainda vão vencer | `popStats().legacy` |
 
 A cada ano, o Contador comenta o saldo do ano, e a Ouvidora, o saldo ponderado, explicado pela variação da distância entre os mais pobres e os mais ricos (em dias de vida saudável por pessoa).
+
+### 6. Os dilemas
+
+Cada dilema foi calibrado para não ter resposta dominante: em geral, a opção que o Contador prefere não é a que a Ouvidora prefere. `tests/dilemas.js` mede isso (ver o [README](../README.md#equilíbrio-dos-dilemas)). Em partidas de 10 anos:
+
+| Dilema | Costuma agradar o Contador | Costuma agradar a Ouvidora | Sem resposta dominante |
+|---|---|---|---:|
+| A fila na primeira página | mutirão de fim de semana | reordenar a fila por critério clínico | 49% |
+| O equipamento de presente | aceitar a doação | recusar | 74% |
+| A emenda carimbada | aceitar a emenda | negociar o endereço, ou recusar | 54% |
+| A equipe de avaliação | dispensar | usar o dinheiro em busca ativa | 74% |
+| Enchente nas áreas de ocupação | esperar a ajuda federal | resposta de emergência | 48% |
+| O reajuste da atenção básica | negar | conceder | 49% |
+
+Nos outros casos, uma opção vence nos dois jurados, e qual delas depende da partida: do ano em que o dilema aparece, da cidade, do aperto do orçamento e de como se joga. Contratar a equipe de avaliação, por exemplo, vence nos dois em 9% dos casos, quando a estimativa muda uma decisão importante.
 
 ## Fim de mandato (`renderFinal`)
 
@@ -268,7 +283,7 @@ Acrescente a `SINERGIAS` um objeto `{nm, bonus, par:[nomes], alvo:[nomes], txt}`
 
 ### Novo dilema
 
-Acrescente a `DILEMMAS` um objeto `{id, nm, txt, opts:[…]}`. Cada opção precisa de `t`, `d` e `n`; os efeitos possíveis estão listados no comentário acima de `DILEMMAS` e aplicados em `applyDilemma`. Um `budget` negativo entra na conta do ano e desloca saúde; um `recurring` vira compromisso dos anos seguintes. O `id` `'avaliacao'` é reservado para o ano 2 do tutorial.
+Acrescente a `DILEMMAS` um objeto `{id, nm, txt, opts:[…]}`. Cada opção precisa de `t`, `d` e `n` (e, de preferência, `jornal`); os efeitos possíveis estão listados no comentário acima de `DILEMMAS` e aplicados em `applyDilemma`. Um `budget` negativo entra na conta do ano e desloca saúde; um `recurring` vira compromisso dos anos seguintes; um `gainYear` é um ganho por ano, do ano seguinte até o fim do mandato. Um corte na margem do ano seguinte (`penalty`) só pesa se a conta passar da margem, então costuma custar menos que o mesmo valor em `budget`. Depois de criar ou mudar um dilema, rode `tests/dilemas.js` para ver se alguma opção ficou dominante. Um efeito novo precisa entrar também em `tests/motor.js`. O `id` `'avaliacao'` é reservado para o ano 2 do tutorial.
 
 ### Novo evento
 
