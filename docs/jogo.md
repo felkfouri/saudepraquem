@@ -22,7 +22,9 @@ Definida na tela "Antes de assumir" e guardada em `cfg`:
 
 `rng(seed)` é um gerador mulberry32. A partida usa `rng(código × 7919 + duração)`, e `newGame` sorteia logo no início o calendário de eventos e dilemas e a ordem do baralho. Duas pessoas com o mesmo código, a mesma duração e a mesma escolha de tutorial recebem os mesmos eventos, dilemas e propostas.
 
-O mesmo gerador continua sendo usado durante a partida (realização da evidência, reembaralhamento do baralho, datas e notas do jornal, resultado da negociação da emenda). A quantidade de sorteios por ano não depende das escolhas, com uma exceção: escolher "Negociar o endereço" consome um sorteio a mais. Daí em diante, para quem negociou, a realização da evidência, as cartas depois que o baralho é refeito e o jornal deixam de coincidir com os de quem não negociou. O calendário de eventos e dilemas não muda. Encerrar programas, escolher o que deixa de ser feito e o apoio político não usam o gerador.
+O mesmo gerador continua sendo usado durante a partida (realização da evidência, reembaralhamento do baralho, resultado da negociação da emenda). A quantidade de sorteios por ano não depende das escolhas, com uma exceção: escolher "Negociar o endereço" consome um sorteio a mais. Daí em diante, para quem negociou, a realização da evidência e as cartas depois que o baralho é refeito deixam de coincidir com as de quem não negociou. O calendário de eventos e dilemas não muda. Encerrar programas, escolher o que deixa de ser feito e o apoio político não usam o gerador.
+
+O jornal tem um gerador próprio (`G.jr`), derivado do mesmo código, para a data, as variações de texto, a carta do leitor e as notas breves. Assim, acrescentar ou tirar textos do jornal não muda nenhuma partida.
 
 Qualquer mudança que acrescente, remova ou reordene chamadas a `G.r()` muda o que cada código produz. O mesmo vale para acrescentar cartas, dilemas ou eventos, que mudam o tamanho do que é embaralhado.
 
@@ -51,7 +53,7 @@ nextYear()        próximo ano, ou renderFinal() no último
 |---|---|---|
 | Margem do ano | R$ 150 mi; na crise fiscal, R$ 53 mi (× 0,35) | `MARGIN`, `CRISIS_F` |
 | Transferência federal (evento) | R$ 200 mi, só naquele ano | `TRANSFER` |
-| O máximo que dá para tirar do que deixa de ser feito, além da margem | R$ 100 mi | `EXTRA` |
+| Cortes permitidos além da margem, para abrir espaço a programas novos | R$ 100 mi | `EXTRA` |
 | Compromissos | custeio municipal dos programas em funcionamento, contas de dilemas, segunda parcela da ordem judicial | `commitments` |
 | Ordem judicial (evento) | R$ 125 mi neste ano | `JUD` |
 | Dilema | o que a opção escolhida tira do ano (mutirão, equipe de avaliação, resposta à enchente) | `G.dilemmaSpend` |
@@ -105,7 +107,7 @@ $$s'_i = (1-w)\cdot 100\cdot\frac{s_i}{\sum_j s_j} + w \cdot \text{ref}_i$$
 A conta do ano (compromissos + ordem judicial + dilema + programas novos) é paga nesta ordem (`waterfall`):
 
 1. a transferência federal, se houver, que não tira saúde na cidade;
-2. a opção escolhida pelo jogador, até o teto dela;
+2. a opção escolhida pelo jogador, até o teto dela (o "até R$ X mi/ano" do botão: o máximo que dá para cortar dali num ano);
 3. a margem;
 4. a rotina das unidades básicas, que paga o que sobrar.
 
@@ -232,6 +234,24 @@ Acrescente uma chave a `EXITS` com os campos descritos no comentário acima da c
 ### Nova cidade
 
 Acrescente a `CITIES` (`nm`, `h0`, `erosion`, `srcAb`, `net`, `infra`, `desc`) e um botão `data-city` em `#cityPick`. O gráfico final ajusta o eixo sozinho se a saúde de partida ficar fora de 60–75 anos.
+
+### Textos do jornal
+
+O jornal de cada ano (`paperData`, `headline`) é montado com textos de várias listas:
+
+| Onde | O quê |
+|---|---|
+| `JORNAL.manchete` | manchetes, por situação (aposta em evidência fraca, busca ativa, transporte gratuito, cada opção de corte, encerramento, ano sem programa novo) |
+| `JORNAL.abertura`, `JORNAL.balanco` | primeira frase da matéria e o balanço do ano (positivo, negativo e a ressalva de que parte do ganho ainda vem) |
+| `JORNAL.distancia` | a frase sobre a distância entre os bairros (caiu, subiu, ficou igual) |
+| `EXITS[*].who`, `JORNAL.margem` | quem pagou a conta: uma história de quem sentiu o corte |
+| `JORNAL.encerrado`, `JORNAL.calmo` | encerramento de programa; ano sem evento nem dilema |
+| `EVENTS[*].jornal` | a repercussão de cada evento (na epidemia, com e sem saneamento; na pressão da indústria, com e sem o tratamento) |
+| opções de `DILEMMAS`, campo `jornal` | o que aconteceu depois da escolha (na negociação da emenda, `{ok, no}`) |
+| `CARTAS` | a carta do leitor, por situação: quem pagou a conta, para quem foi o programa novo, encerramento, aposta, ano sem programa, distância que caiu ou subiu |
+| `BREVES` | as notas breves da coluna lateral, duas por ano |
+
+Nos textos com marcador, `{p}` é o programa, `{c}` os programas encerrados, `{w}` a aposta, `{n}` e `{s}` os programas em funcionamento, `{y}` o ano, `{k}` e `{l}` quantos e quais programas novos, `{x}` o saldo do ano e `{d}` os dias por pessoa. Cada lista funciona como um baralho (`deal`): um texto só se repete quando a lista acaba. Para acrescentar um texto, basta pô-lo na lista. Ele não muda nenhuma partida, porque o jornal tem gerador próprio. A carta do leitor e as histórias podem sair mais de uma vez na mesma partida, então não devem dizer "pela primeira vez".
 
 ### Cenário novo no laboratório
 

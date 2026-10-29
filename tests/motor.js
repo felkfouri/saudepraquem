@@ -3,8 +3,8 @@
    tests/validar.js conferir a página contra elas. Os dados (cidades, propostas com a ficha de cada uma, dilemas,
    eventos, opções de corte, dinheiro do ano e réguas) vêm do próprio index.html; as regras, não. Se uma regra mudar
    na página, mude aqui também: a validação acusa qualquer diferença.
-   Faz as mesmas chamadas ao gerador, na mesma ordem que a página: calendário, baralho, realizações, negociação da
-   emenda e os três sorteios do jornal de cada ano. Os nomes das funções são os da página. Unidades como na página:
+   Faz as mesmas chamadas ao gerador da partida, na mesma ordem que a página: calendário, baralho, realizações e
+   negociação da emenda (o jornal tem gerador próprio e não entra aqui). Os nomes das funções são os da página. Unidades como na página:
    saúde por grupo em QALYs, dinheiro em R$ milhões, vetores dos mais pobres (0) aos mais ricos (4).
    Regras descritas em docs/jogo.md. */
 const fs=require('fs'),path=require('path');
@@ -13,9 +13,8 @@ const fs=require('fs'),path=require('path');
 function readData(file){
   const html=fs.readFileSync(file,'utf8');
   const part=(from,to)=>{const i=html.indexOf(from),j=i<0?-1:html.indexOf(to,i);if(j<0)throw new Error(file+': não achei o trecho que começa com '+JSON.stringify(from));return html.slice(i,j);};
-  const src=part('  /* ---------- Jogo: dez anos de gestão ---------- */','  // gerador com semente')+
-    part('  const BREVES=[','\n  ];')+'\n  ];\n'+part('  const GRADES=','\n')+'\n';
-  return new Function(src+'return {Y0,GL,MARGIN,CRISIS_F,EXTRA,TRANSFER,JUD,APOIO0,APOIO0_5,APOIO_MAX,CITIES,ADDON,EXITS,DECK,DILEMMAS,EVSPREAD,EVENTS,BREVES,GRADES};')();
+  const src=part('  /* ---------- Jogo: dez anos de gestão ---------- */','  // gerador com semente')+part('  const GRADES=','\n')+'\n';
+  return new Function(src+'return {Y0,GL,MARGIN,CRISIS_F,EXTRA,TRANSFER,JUD,APOIO0,APOIO0_5,APOIO_MAX,CITIES,ADDON,EXITS,DECK,DILEMMAS,EVSPREAD,EVENTS,GRADES};')();
 }
 const D=readData(path.join(__dirname,'..','index.html'));
 // cartas fixas dos anos 1 e 2 do tutorial (dealYear na página)
@@ -187,9 +186,8 @@ function closeYear(G){
   for(let i=0;i<N;i++)lossQ[i]+=G.city.erosion[i]*ef;
   const late=G.pendingLoss[G.year]||zeros();delete G.pendingLoss[G.year];for(let i=0;i<N;i++)lossQ[i]+=late[i];
   if(G.ev&&G.ev.damage){const mit=G.progs.some(p=>p.tags.includes(G.ev.mitigTag)&&p.start<G.year&&(!p.closedAt||p.closedAt>G.year));G.ev.damage.forEach((d,i)=>{lossQ[i]+=mit?d/2:d;});}
-  // 10. saldo do ano; depois, os três sorteios do jornal (mês, dia e as notas breves)
+  // 10. saldo do ano
   for(let i=0;i<N;i++)G.cum[i]+=gainQ[i]-lossQ[i];
-  G.r();G.r();shuffle(D.BREVES.map((_,i)=>i),G.r);
   G.closed=true;
   return {gainQ,lossQ,Tm,tr,displaced:Lo.d};
 }

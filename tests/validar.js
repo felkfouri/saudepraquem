@@ -5,6 +5,7 @@
       Compara, ano a ano: dilema, cartas na mesa, apoio político, opções de corte ao alcance, compromissos, espaço
       para programas novos e os quatro placares; no fim, título, notas, herança e custo exportado.
    2. Partidas com cliques ao acaso: nenhum erro de JavaScript e nenhum ano que não feche.
+   Nas duas partes, o jornal de cada ano não pode ter "undefined", "NaN" nem marcador de texto sem preencher ({p}).
    Uso: node tests/validar.js [códigos=4] [partidas ao acaso=20]
    Termina com código 0 se tudo bater. Leva cerca de 3 segundos por partida. */
 const {chromium}=require('playwright');
@@ -56,6 +57,11 @@ const pageYear=page=>page.evaluate(()=>{
     chips:[...L.querySelectorAll('[data-exit]')].map(b=>({k:b.dataset.exit,on:!b.disabled}))};
 });
 
+// o jornal do ano montado sem buracos: nenhum "undefined", "NaN" ou marcador {x} sem preencher
+async function paperProblem(page){
+  const t=await page.locator('.paper').innerText().catch(()=>'');
+  return !t?'jornal ausente':/undefined|NaN|\{\w\}/.test(t)?'jornal com texto quebrado: '+(t.match(/.{0,60}(undefined|NaN|\{\w\}).{0,20}/)||[''])[0]:'';
+}
 async function start(page,cfg){
   await page.goto('about:blank');await page.goto(URL);
   await page.locator('#gStart summary',{hasText:'Configurações avançadas'}).click();
@@ -101,6 +107,7 @@ async function parity(page,cfg,pol){
     if(num(room)!==Math.round(G.room))D(y,'espaço depois de encerrar na página '+room+', no motor '+G.room.toFixed(2));
     if(await page.locator('#closeYear').isDisabled()){D(y,'"Fechar o ano" desabilitado');break;}
     await page.locator('#closeYear').click();M.closeYear(G);
+    const pp=await paperProblem(page);if(pp)D(y,pp);
     const tp=await pageTiles(page),tm=tilesOf(G);for(const k in tm)if(tp[k]!==tm[k])D(y,k+' na página '+tp[k]+', no motor '+tm[k]);
     await page.locator('#nextYear').click();
     if(!M.nextYear(G))break;
@@ -113,7 +120,7 @@ async function parity(page,cfg,pol){
   if(!her)D('fim','o resumo final não tem a linha da herança');
   else if(+her[1]!==f.herancaN||num(her[2])!==Math.round(f.herancaMun)||num(her[3])!==Math.round(f.exported))
     D('fim','herança e custo exportado na página '+her.slice(1).join(' / ')+', no motor '+[f.herancaN,Math.round(f.herancaMun),Math.round(f.exported)].join(' / '));
-  return {diffs,summary:f.title+' · Contador '+sgn(Math.round(f.net))+' · Ouvidora '+sgn(Math.round(f.ew))+' · Legado '+sgn(Math.round(f.legacy))+(f.nClosed?' · '+f.nClosed+' encerrados':'')};
+  return {diffs,summary:f.title+' · Contador '+sgn(Math.round(f.net))+' · Ouvidora '+sgn(Math.round(f.ew))+' · Legado '+sgn(Math.round(f.legacy))+(f.nClosed?' · '+f.nClosed+(f.nClosed>1?' encerrados':' encerrado'):'')};
 }
 
 // ---------- parte 2: cliques ao acaso
@@ -133,7 +140,9 @@ async function random(page,r){
     const ex=await page.locator('[data-exit]:not([disabled])').all();if(ex.length&&r()<0.7)await pick(ex).click();
     for(let i=n-1;i>=0&&await page.locator('#closeYear').isDisabled();i--)if(await page.locator('#hc'+i).isChecked())await page.locator('#hc'+i).click();
     if(await page.locator('#closeYear').isDisabled())return tag+': o ano '+y+' não fecha nem sem cartas';
-    await page.locator('#closeYear').click();await page.locator('#nextYear').click();
+    await page.locator('#closeYear').click();
+    const pp=await paperProblem(page);if(pp)return tag+', ano '+y+': '+pp;
+    await page.locator('#nextYear').click();
   }
   return (await page.locator('.final .n').count())?'':tag+': não chegou à tela final';
 }

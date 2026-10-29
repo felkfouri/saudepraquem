@@ -195,6 +195,9 @@ a.btn{text-decoration:none;display:inline-block}
 .paper .cols p:first-child::first-letter{font-family:var(--display);font-size:2.4em;font-weight:800;float:left;line-height:.8;margin:.08em .12em 0 0}
 .paper .side p{font-size:.84rem;line-height:1.45;margin:0 0 .7rem;padding-bottom:.6rem;border-bottom:1px dotted var(--line)}
 .paper .side p:last-child{border:0}
+.paper .side .carta{font-style:italic}
+.paper .side .kick+.carta{margin-top:.1rem}
+.paper .side .carta+.kick{margin-top:.6rem}
 .paper .side .bk{display:block;font-family:var(--display);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .mathbox{border:1px solid var(--line);border-radius:8px;padding:.6rem .9rem;margin:.8rem 0;background:var(--bg)}
 .mathbox table{font-size:.8rem}
@@ -240,7 +243,7 @@ a.btn{text-decoration:none;display:inline-block}
 /* dinheiro do ano: margem, compromissos (com a lista para encerrar) e espaço para programas novos */
 .money{border:1px solid var(--line);border-radius:8px;padding:.6rem .85rem;margin:.2rem 0 1rem;background:var(--bg);font-family:var(--display);font-size:.88rem}
 .money .row{display:flex;justify-content:space-between;gap:.8rem;padding:.12rem 0}
-.money b{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.money .row b,.money summary b,.money .prog>b{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
 .money .row.tot{border-top:1px solid var(--line);margin-top:.3rem;padding-top:.35rem;font-weight:700}
 .money .row.tot b{font-weight:600;color:var(--accent)}
 .money details{margin:.1rem 0}
@@ -1062,28 +1065,40 @@ html{scroll-padding-top:4rem}
   //   lag    fração da perda neste ano, no seguinte...          from  ano do jogo (1..) em que a opção aparece
   //   apoio  pontos de apoio político; elec: +1 em ano de eleição; rep: +1 se a opção pagou algo no ano anterior
   //   noCrise  some na crise fiscal                              spare  a greve não muda quem perde
-  //   hint/quem/who  dica, quem decide de fato e quem paga a conta no jornal (who alterna por ano)
+  //   hint/quem/who  dica, quem decide de fato e histórias de quem pagou a conta, para o jornal
   const EXITS={
     ab:{nm:'Rotina das unidades básicas',short:'rotina',de:'da rotina das unidades básicas',prod:1.1,cityOc:true,lag:[.75,.25],apoio:0,from:1,
       hint:'Vagas não repostas, visitas que não acontecem. É onde se perde mais saúde por real (1,1 ano por R$ 40 mil), quase toda de quem só tem o SUS, um quarto só no ano seguinte. Ninguém protesta: não gasta apoio.',
       quem:'Ninguém assina: é o que acontece quando a secretaria não escolhe outra coisa. Também sai daqui o que passar do teto das outras opções.',
       who:['Seu Jair, 61 anos, hipertenso, mora no Jardim Esperança. A unidade passou a fechar às 17h e ele perdeu dois retornos; a pressão que ninguém mediu vai aparecer no pronto-socorro.',
-           'A equipe da Vila Operária está sem agente comunitário desde março. Na casa de Dona Rosa, diabética, ninguém mais bateu na porta.']},
+           'A equipe da Vila Operária está sem agente comunitário desde março. Na casa de Dona Rosa, diabética, ninguém mais bateu na porta.',
+           'Na unidade do Morro Alto, a dentista que se aposentou em maio não foi substituída. A agenda de tratamento fechou; ficou só a urgência.',
+           'Joana, 24 anos, grávida do primeiro filho, mora no Parque das Águas. O pré-natal, que era mensal, virou a cada dois meses: a enfermeira agora atende duas equipes.',
+           'O grupo de caminhada dos hipertensos da Vila Nova acabou quando a educadora física foi remanejada. Seu Osvaldo, 70 anos, voltou a passar as tardes no sofá.']},
     fila:{nm:'Fila de cirurgias e exames',short:'fila',de:'da fila de cirurgias e exames',prod:.85,oc:[27,25,22,16,10],tilt:1,cap:200,apoio:1,elec:1,rep:1,from:1,
       hint:'Cotas menores de cirurgias eletivas e exames contratados. Espera mais quem não tem plano: 0,85 ano por R$ 40 mil. Sai no jornal, então gasta apoio.',
       quem:'A secretaria, ao reduzir as cotas dos contratos com hospitais e laboratórios. Os contratos limitam o corte a R$ 200 mi por ano.',
       who:['Dona Lúcia, 52 anos, espera a cirurgia de vesícula. A previsão passou de 14 para 26 meses; a vizinha, que tem plano, operou em março.',
-           'Seu Valdir, 67 anos, precisa de uma ressonância do joelho. A cota do laboratório conveniado acabou em agosto.']},
+           'Seu Valdir, 67 anos, precisa de uma ressonância do joelho. A cota do laboratório conveniado acabou em agosto.',
+           'Marta, 45 anos, costureira, espera a cirurgia da hérnia há três anos. Com a cota menor, continua costurando de cinta.',
+           'O ambulatório de ortopedia passou a marcar retorno para o ano seguinte. Na fila da catarata, Dona Celeste, 79 anos, desistiu de contar os meses.',
+           'A cota de endoscopias caiu pela metade. Seu Raimundo, 58 anos, com azia há um ano, ficou para "assim que abrir vaga".']},
     pref:{nm:'Pedir ao prefeito',short:'outras pastas',de:'de outras pastas da prefeitura',prod:.45,oc:[33,26,20,13,8],tilt:1,lag:[.5,.5],cap:150,apoio:2,elec:1,from:3,spare:1,noCrise:1,
       hint:'O prefeito tira verba de drenagem, transporte e assistência social. Também é saúde perdida, mais nos bairros pobres, mas menos por real: 0,45 ano por R$ 40 mil, metade no ano seguinte.',
       quem:'O prefeito, por decreto que remaneja verbas de outras pastas, dentro do limite que a Câmara aprovou na lei do orçamento. Na crise fiscal, não há de onde tirar.',
       who:['Na Vila Nova, a canalização do córrego ficou para depois. Na próxima chuva forte, a água volta a entrar nas casas.',
-           'A linha de ônibus da madrugada entre o Jardim Esperança e o centro foi cortada, e o CRAS do bairro passou a abrir só três dias por semana.']},
+           'A linha de ônibus da madrugada entre o Jardim Esperança e o centro foi cortada, e o CRAS do bairro passou a abrir só três dias por semana.',
+           'O restaurante popular do centro passou a servir só o almoço. Quem jantava ali, como Seu Benedito, 66 anos, agora janta café com pão.',
+           'A reforma da creche do Parque das Águas foi adiada. As mães do bairro voltaram a deixar os filhos com a vizinha, quando ela pode.',
+           'A iluminação da passarela da rodovia, que estava no orçamento de obras, ficou para o ano que vem. À noite, os moradores atravessam pela pista.']},
     baixo:{nm:'Cortar o que rende pouco',short:'baixo valor',de:'do que rende pouco',prod:.2,oc:[18,19,20,21,22],tilt:1,cap:50,apoio:1,rep:1,from:2,spare:1,
       hint:'A regulação deixa de pagar check-up sem indicação e exame fora da faixa de idade. Perde-se pouco (0,2 ano por R$ 40 mil), um pouco mais entre quem tem mais, mas só cabem R$ 50 mi.',
       quem:'A secretaria, com protocolo da central de regulação. Médicos e laboratórios reclamam na Câmara e na imprensa.',
       who:['O check-up anual sem indicação deixou de ser pago pela prefeitura. O laboratório do centro protestou; o Dr. Paulo, 48 anos, gerente de banco, também.',
-           'Rastreamento fora da faixa de idade passou a exigir justificativa. Dois médicos reclamaram na rádio.']}
+           'Rastreamento fora da faixa de idade passou a exigir justificativa. Dois médicos reclamaram na rádio.',
+           'A rede deixou de dosar vitamina D sem indicação. "Eu dosava todo ano", lamentou uma leitora do centro, que nunca teve deficiência.',
+           'A regulação passou a recusar tomografia para dor lombar sem sinal de alerta. A fila da tomografia andou; o ortopedista do convênio reclamou.',
+           'Exame pré-operatório de rotina para cirurgia pequena saiu do protocolo. O anestesista aprovou; o laboratório, nem tanto.']}
   };
   // Card de proposta:
   //   nm       nome (também usado pelo tutorial e pelas manchetes)
@@ -1134,28 +1149,42 @@ html{scroll-padding-top:4rem}
   //   recurring  {amt, years, nm}: compromisso anual a partir do ano seguinte
   //   evalOn     liga a estimativa local de realização nos cards   erosion  fator permanente sobre a erosão
   //   erosionTemp {f, years}: fator temporário sobre a erosão       negotiate  resultado sorteado (50%)
-  //   note       nota do ano para a manchete
+  //   note       nota do ano para a manchete      jornal  o que o jornal conta depois ({ok, no} na negociação)
   const DILEMMAS=[
     {id:'fila',nm:'A fila na primeira página',txt:'Um jornal publicou a lista de espera de cirurgias com nomes e tempos: 4 anos para hérnia, 3 para vesícula. A câmara convocou você para explicar.',
-      opts:[{t:'Mutirão de fim de semana',n:'Resolve a fila mais visível agora, para todo mundo, e custa parte do orçamento deste ano.',d:'R$ 60 mi a menos no espaço deste ano; 3.250 anos de vida saudável agora, distribuídos por igual.',budget:-60,gainQ:[650,650,650,650,650]},
-            {t:'Reordenar a fila por critério clínico',d:'Sem custo. Quem está pior passa na frente: 1.200 anos, sobretudo para quem tem menos. Mas quem perdeu o lugar tinha contato na câmara: R$ 40 mi a menos na margem do ano que vem.',n:'Não custa nada e atende primeiro quem está pior, que em geral tem menos. Desagrada quem perdeu o lugar.',gainQ:[430,340,220,130,80],penalty:40,why:'a reordenação da fila do ano passado desagradou quem tinha contatos.'},
-            {t:'Esperar a notícia passar',n:'Nada muda, e a notícia continua.',d:'Nada muda. A manchete do fim do ano vai lembrar.',note:'A fila continuou nas páginas por meses.'}]},
+      opts:[{t:'Mutirão de fim de semana',n:'Resolve a fila mais visível agora, para todo mundo, e custa parte do orçamento deste ano.',d:'R$ 60 mi a menos no espaço deste ano; 3.250 anos de vida saudável agora, distribuídos por igual.',budget:-60,gainQ:[650,650,650,650,650],
+             jornal:'Em três sábados de mutirão, o hospital central operou centenas de hérnias e vesículas. A fila mais visível encolheu, e a equipe pediu folga.'},
+            {t:'Reordenar a fila por critério clínico',d:'Sem custo. Quem está pior passa na frente: 1.200 anos, sobretudo para quem tem menos. Mas quem perdeu o lugar tinha contato na câmara: R$ 40 mi a menos na margem do ano que vem.',n:'Não custa nada e atende primeiro quem está pior, que em geral tem menos. Desagrada quem perdeu o lugar.',gainQ:[430,340,220,130,80],penalty:40,why:'a reordenação da fila do ano passado desagradou quem tinha contatos.',
+             jornal:'A nova fila põe na frente quem está pior. Quem perdeu o lugar reclamou na Câmara; quem esperava com dor agradeceu.'},
+            {t:'Esperar a notícia passar',n:'Nada muda, e a notícia continua.',d:'Nada muda. A manchete do fim do ano vai lembrar.',note:'A fila continuou nas páginas por meses.',
+             jornal:'A lista seguiu publicada, com nomes e tempos de espera, e ganhou atualização mensal por iniciativa deste jornal.'}]},
     {id:'doacao',nm:'O equipamento de presente',txt:'Um fabricante oferece de graça um aparelho de última geração para o hospital central. O contrato prevê insumos exclusivos por três anos.',
-      opts:[{t:'Aceitar a doação',n:'Ganho imediato para quem chega ao hospital central; os insumos pesam no orçamento por três anos.',d:'1.500 anos de vida saudável agora, concentrados em quem chega ao hospital central. Insumos: R$ 40 mi por ano durante 3 anos, como compromisso.',gainQ:[120,180,300,420,480],recurring:{amt:40,years:3,nm:'insumos do equipamento doado'}},
-            {t:'Recusar',n:'Nada muda.',d:'Nada muda. O fabricante leva a oferta para a cidade vizinha.'}]},
+      opts:[{t:'Aceitar a doação',n:'Ganho imediato para quem chega ao hospital central; os insumos pesam no orçamento por três anos.',d:'1.500 anos de vida saudável agora, concentrados em quem chega ao hospital central. Insumos: R$ 40 mi por ano durante 3 anos, como compromisso.',gainQ:[120,180,300,420,480],recurring:{amt:40,years:3,nm:'insumos do equipamento doado'},
+             jornal:'O aparelho chegou ao hospital central com fita e discurso. Os insumos exclusivos também chegaram, e o contrato vale por três anos.'},
+            {t:'Recusar',n:'Nada muda.',d:'Nada muda. O fabricante leva a oferta para a cidade vizinha.',
+             jornal:'A cidade vizinha inaugurou o aparelho com festa. A secretaria diz que "presente com contrato não é presente".'}]},
     {id:'emenda',nm:'A emenda carimbada',txt:'Um deputado oferece R$ 150 milhões de emenda parlamentar, carimbados: só podem construir uma unidade de pronto-atendimento, e no bairro de classe alta onde ele tem votos. A emenda paga a obra; quem paga o funcionamento, todo ano, é a secretaria.',
-      opts:[{t:'Aceitar a emenda',d:'1.200 anos de vida saudável, quase todos para quem tem mais, sem gastar o seu orçamento na obra. Custeio de R$ 12 mi por ano até o fim do mandato.',n:'Dinheiro de fora, saúde para quem já tem mais, e uma conta de custeio que fica com você.',gainQ:[60,120,240,360,420],recurring:{amt:12,years:99,nm:'UPA da emenda'}},
-            {t:'Negociar o endereço',d:'Propor a UPA num bairro da periferia. O deputado pode topar (1.800 anos, sobretudo para quem tem menos, custeio de R$ 12 mi por ano) ou se ofender e fazer campanha contra: R$ 60 mi a menos na margem do ano que vem.',n:'Pode render uma unidade onde faz falta, ou irritar o deputado.',negotiate:{gainQ:[900,480,240,120,60],amt:12,penalty:60}},
-            {t:'Recusar',d:'A emenda vai para outra pasta. Nada muda na saúde.',n:'Nada muda na saúde.'}]},
+      opts:[{t:'Aceitar a emenda',d:'1.200 anos de vida saudável, quase todos para quem tem mais, sem gastar o seu orçamento na obra. Custeio de R$ 12 mi por ano até o fim do mandato.',n:'Dinheiro de fora, saúde para quem já tem mais, e uma conta de custeio que fica com você.',gainQ:[60,120,240,360,420],recurring:{amt:12,years:99,nm:'UPA da emenda'},
+             jornal:'A UPA vai ficar no bairro do deputado. A obra é da emenda; o funcionamento, da secretaria, até o fim do mandato.'},
+            {t:'Negociar o endereço',d:'Propor a UPA num bairro da periferia. O deputado pode topar (1.800 anos, sobretudo para quem tem menos, custeio de R$ 12 mi por ano) ou se ofender e fazer campanha contra: R$ 60 mi a menos na margem do ano que vem.',n:'Pode render uma unidade onde faz falta, ou irritar o deputado.',negotiate:{gainQ:[900,480,240,120,60],amt:12,penalty:60},
+             jornal:{ok:'Na periferia, a associação de moradores soltou fogos com o anúncio.',no:'Na Câmara, o deputado chamou a contraproposta de "desfeita" e prometeu oposição à secretaria.'}},
+            {t:'Recusar',d:'A emenda vai para outra pasta. Nada muda na saúde.',n:'Nada muda na saúde.',
+             jornal:'A emenda foi para outra pasta. O deputado disse que a saúde "não sabe aproveitar oportunidades".'}]},
     {id:'avaliacao',nm:'A equipe de avaliação',txt:'Uma universidade propõe montar uma equipe de avaliação de tecnologias na secretaria. Custa R$ 15 milhões, uma vez.',
-      opts:[{t:'Contratar a equipe',n:'Custa um pouco agora; a partir deste ano, você passa a saber quanto as propostas duvidosas rendem de verdade.',d:'Já neste ano, as propostas de evidência moderada ou fraca chegam à mesa com uma estimativa local de quanto vão render de fato.',budget:-15,evalOn:true},
-            {t:'Dispensar',n:'Continua apostando no que o proponente promete.',d:'As propostas continuam chegando só com a promessa do fabricante ou do proponente.'}]},
+      opts:[{t:'Contratar a equipe',n:'Custa um pouco agora; a partir deste ano, você passa a saber quanto as propostas duvidosas rendem de verdade.',d:'Já neste ano, as propostas de evidência moderada ou fraca chegam à mesa com uma estimativa local de quanto vão render de fato.',budget:-15,evalOn:true,
+             jornal:'A universidade montou a equipe na secretaria. A primeira tarefa: conferir se as propostas na mesa entregam o que prometem.'},
+            {t:'Dispensar',n:'Continua apostando no que o proponente promete.',d:'As propostas continuam chegando só com a promessa do fabricante ou do proponente.',
+             jornal:'As propostas continuam chegando com a palavra de quem as vende. A universidade diz que a oferta continua de pé.'}]},
     {id:'enchente',nm:'Enchente nas áreas de ocupação',txt:'Chuvas de verão alagaram os bairros mais pobres. Há risco de leptospirose, diarreia e perda de medicação crônica.',
-      opts:[{t:'Resposta de emergência (R$ 80 mi)',n:'Custa parte do orçamento deste ano; ninguém adoece a mais.',d:'Abrigos, equipes volantes e reposição de medicamentos. Ninguém adoece a mais. R$ 80 mi a menos no espaço deste ano.',budget:-80},
-            {t:'Esperar a ajuda federal',n:'Sem custo agora; os bairros alagados pagam em saúde.',d:'Ela chega, mas tarde: 2.500 anos de vida saudável perdidos, quase todos entre os mais pobres.',lossQ:[1400,700,250,100,50]}]},
+      opts:[{t:'Resposta de emergência (R$ 80 mi)',n:'Custa parte do orçamento deste ano; ninguém adoece a mais.',d:'Abrigos, equipes volantes e reposição de medicamentos. Ninguém adoece a mais. R$ 80 mi a menos no espaço deste ano.',budget:-80,
+             jornal:'Abrigos, equipes volantes e reposição de remédios chegaram em 48 horas. Ninguém adoeceu a mais, e a conta saiu deste ano.'},
+            {t:'Esperar a ajuda federal',n:'Sem custo agora; os bairros alagados pagam em saúde.',d:'Ela chega, mas tarde: 2.500 anos de vida saudável perdidos, quase todos entre os mais pobres.',lossQ:[1400,700,250,100,50],
+             jornal:'A ajuda federal chegou três semanas depois. Nesse meio-tempo, casos de leptospirose e de diarreia lotaram as unidades das áreas alagadas.'}]},
     {id:'reajuste',nm:'O reajuste da atenção básica',txt:'Agentes comunitários e equipes das unidades básicas pedem reajuste. Sem ele, ameaçam reduzir as visitas domiciliares.',
-      opts:[{t:'Conceder o reajuste',n:'Custa todo ano até o fim; a rotina para de perder terreno tão rápido.',d:'R$ 30 mi por ano até o fim do mandato. A rotina para de perder terreno tão rápido: a erosão anual cai pela metade.',recurring:{amt:30,years:99,nm:'reajuste da atenção básica'},erosion:0.5},
-            {t:'Negar',n:'Sem custo, mas as equipes reduzem as visitas por um tempo.',d:'Sem custo. Mas as equipes reduzem as visitas: a erosão da rotina aumenta 30% nos próximos dois anos.',erosionTemp:{f:1.3,years:2}}]}
+      opts:[{t:'Conceder o reajuste',n:'Custa todo ano até o fim; a rotina para de perder terreno tão rápido.',d:'R$ 30 mi por ano até o fim do mandato. A rotina para de perder terreno tão rápido: a erosão anual cai pela metade.',recurring:{amt:30,years:99,nm:'reajuste da atenção básica'},erosion:0.5,
+             jornal:'Agentes comunitários e equipes das unidades básicas comemoraram. As visitas domiciliares, que vinham caindo, voltaram ao ritmo.'},
+            {t:'Negar',n:'Sem custo, mas as equipes reduzem as visitas por um tempo.',d:'Sem custo. Mas as equipes reduzem as visitas: a erosão da rotina aumenta 30% nos próximos dois anos.',erosionTemp:{f:1.3,years:2},
+             jornal:'Sem reajuste, as equipes reduziram as visitas domiciliares por tempo indeterminado. "A gente vai onde dá", diz uma agente comunitária.'}]}
   ];
   // fração do ganho prometido que de fato aparece, sorteada uniformemente na faixa da força da evidência
   const EVSPREAD={forte:[0.9,1.1],moderada:[0.7,1.2],fraca:[0.3,1.3]};
@@ -1163,13 +1192,28 @@ html{scroll-padding-top:4rem}
   // crise tira o prefeito das opções); fed: repasse federal só deste ano (R$ mi); forced: card pago obrigatoriamente
   // (ver JUD); extra: card a mais na mesa; ensureTag: garante um card com a tag; damage: QALYs perdidos por grupo, pela
   // metade se um programa com mitigTag funciona desde antes; oc: substitui quem perde na margem, na rotina e na fila.
+  // jornal: repercussão no jornal do ano (variações; na epidemia, {mit, sem}; na pressão da indústria, {sim, nao})
   const EVENTS={
-    crise:{nm:'Crise fiscal',good:false,txt:'A arrecadação caiu: a margem deste ano encolhe de R$ '+MARGIN+' mi para R$ '+Math.round(MARGIN*CRISIS_F)+' mi, e o prefeito não tem de onde remanejar verba.',marginF:CRISIS_F},
-    judicial:{nm:'Judicialização',good:false,txt:'Uma decisão judicial obriga a secretaria a comprar um medicamento de altíssimo custo para 40 pacientes: R$ '+JUD.cus+' milhões saem deste ano antes de qualquer escolha, e outros R$ '+JUD.cus+' milhões no ano que vem, metade deles pagos pela União. O ganho fica com quem teve acesso à Justiça.',forced:{nm:'Medicamento judicializado',cost:250,gain:1200,sh:[5,10,20,30,35],tipo:'tratamento',ev:'moderada',profile:[.6,.4],story:'Obrigatório por decisão judicial.'}},
-    epidemia:{nm:'Epidemia de dengue',good:false,txt:'Um verão chuvoso trouxe a pior epidemia de dengue em anos. Os bairros sem saneamento são os mais atingidos.',damage:[1500,900,400,150,50],mitigTag:'vig',mitigTxt:'Como saneamento e vigilância já funcionavam, o estrago foi metade do que seria.'},
-    transfer:{nm:'Transferência federal',good:true,txt:'O Ministério da Saúde repassou R$ '+TRANSFER+' milhões extras, só para este ano. Eles pagam primeiro a conta do ano e não tiram saúde de ninguém na cidade, mas o custeio do que você aprovar com eles volta no ano que vem. Pelo menos uma proposta de atenção primária está na mesa.',fed:TRANSFER,ensureTag:'aps'},
-    lobby:{nm:'Pressão da indústria',good:false,txt:'Uma empresa farmacêutica patrocinou um congresso, a imprensa cobre o "tratamento revolucionário" e a câmara de vereadores quer saber por que ele ainda não chegou. Há uma proposta a mais na mesa.',extra:{nm:'Tratamento "revolucionário"',cost:450,gain:2500,sh:[8,12,20,28,32],tipo:'tratamento',ev:'fraca',profile:[.5,.5],imp:0,cus:225,h:0,story:'Resultados promissores em um estudo pequeno, financiado pelo fabricante.'}},
-    greve:{nm:'Greve nos hospitais',good:false,txt:'Dois meses de greve nos hospitais públicos. Este ano, o que sair da rede (margem, rotina ou fila) pesa ainda mais sobre quem só tem o SUS. Pedir ao prefeito e cortar o que rende pouco não mudam.',oc:[40,30,15,10,5]}
+    crise:{nm:'Crise fiscal',good:false,txt:'A arrecadação caiu: a margem deste ano encolhe de R$ '+MARGIN+' mi para R$ '+Math.round(MARGIN*CRISIS_F)+' mi, e o prefeito não tem de onde remanejar verba.',marginF:CRISIS_F,
+      jornal:['Com a arrecadação em queda, a margem da saúde encolheu e o prefeito avisou que não há de onde remanejar. As secretarias disputam o que sobrou.',
+              'A Fazenda municipal anunciou contingenciamento e congelou os remanejamentos. Na saúde, a margem do ano caiu a cerca de um terço.']},
+    judicial:{nm:'Judicialização',good:false,txt:'Uma decisão judicial obriga a secretaria a comprar um medicamento de altíssimo custo para 40 pacientes: R$ '+JUD.cus+' milhões saem deste ano antes de qualquer escolha, e outros R$ '+JUD.cus+' milhões no ano que vem, metade deles pagos pela União. O ganho fica com quem teve acesso à Justiça.',forced:{nm:'Medicamento judicializado',cost:250,gain:1200,sh:[5,10,20,30,35],tipo:'tratamento',ev:'moderada',profile:[.6,.4],story:'Obrigatório por decisão judicial.'},
+      jornal:['A secretaria cumpriu a decisão e comprou o medicamento para os 40 pacientes. A segunda parcela vence no ano que vem, metade paga pela União.',
+              '"Decisão judicial se cumpre", disse a secretaria, que pagou o medicamento de altíssimo custo. Especialistas lembram que o dinheiro saiu de algum lugar.']},
+    epidemia:{nm:'Epidemia de dengue',good:false,txt:'Um verão chuvoso trouxe a pior epidemia de dengue em anos. Os bairros sem saneamento são os mais atingidos.',damage:[1500,900,400,150,50],mitigTag:'vig',mitigTxt:'Como saneamento e vigilância já funcionavam, o estrago foi metade do que seria.',
+      jornal:{mit:['Foi a pior epidemia de dengue em anos, mas nos bairros com saneamento e vigilância os casos ficaram bem abaixo do esperado.',
+                   'Os agentes de endemias, que já trabalhavam nas áreas de ocupação, seguraram o pior da epidemia. Os casos graves foram metade do previsto.'],
+              sem:['Foi a pior epidemia de dengue em anos. Os bairros sem saneamento lotaram as salas de hidratação, e a maior parte dos casos graves veio da periferia.',
+                   'Com o verão chuvoso, a dengue tomou as áreas de ocupação. A secretaria abriu tendas de hidratação; os moradores pedem esgoto e água encanada.']}},
+    transfer:{nm:'Transferência federal',good:true,txt:'O Ministério da Saúde repassou R$ '+TRANSFER+' milhões extras, só para este ano. Eles pagam primeiro a conta do ano e não tiram saúde de ninguém na cidade, mas o custeio do que você aprovar com eles volta no ano que vem. Pelo menos uma proposta de atenção primária está na mesa.',fed:TRANSFER,ensureTag:'aps',
+      jornal:['Os R$ '+TRANSFER+' milhões do Ministério pagaram primeiro as contas do ano. O custeio do que foi aprovado com eles, porém, volta no ano que vem, sem repasse.',
+              'O dinheiro federal chegou e aliviou a conta do ano. Técnicos alertam: o repasse é de uma vez só, e o custeio fica.']},
+    lobby:{nm:'Pressão da indústria',good:false,txt:'Uma empresa farmacêutica patrocinou um congresso, a imprensa cobre o "tratamento revolucionário" e a câmara de vereadores quer saber por que ele ainda não chegou. Há uma proposta a mais na mesa.',extra:{nm:'Tratamento "revolucionário"',cost:450,gain:2500,sh:[8,12,20,28,32],tipo:'tratamento',ev:'fraca',profile:[.5,.5],imp:0,cus:225,h:0,story:'Resultados promissores em um estudo pequeno, financiado pelo fabricante.'},
+      jornal:{sim:['A secretaria incluiu o "tratamento revolucionário" na rede. O fabricante comemorou; pesquisadores da universidade lembram que o estudo que o sustenta é pequeno e foi pago por ele.'],
+              nao:['A secretaria não incluiu o "tratamento revolucionário". O fabricante promete insistir, e a câmara de vereadores pediu um parecer técnico.']}},
+    greve:{nm:'Greve nos hospitais',good:false,txt:'Dois meses de greve nos hospitais públicos. Este ano, o que sair da rede (margem, rotina ou fila) pesa ainda mais sobre quem só tem o SUS. Pedir ao prefeito e cortar o que rende pouco não mudam.',oc:[40,30,15,10,5],
+      jornal:['Depois de dois meses, os servidores voltaram ao trabalho com promessa de negociação. A fila de cirurgias acumulada vai levar meses para andar.',
+              'Os dois meses de paralisação jogaram o atendimento de rotina para as unidades básicas, que não davam conta. Quem só tem o SUS esperou mais.']}
   };
   // gerador com semente (mulberry32), para partidas reproduzíveis
   function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
@@ -1211,7 +1255,8 @@ html{scroll-padding-top:4rem}
     //   apoio/lastPaid: pontos de apoio e a opção que pagou algo no ano anterior   exported: R$ mi pagos pela União
     //   funded: financiados, para o resumo   pens: cortes na próxima margem [{amt, why}]
     //   hist/years: série da distância pobres–ricos e saldo de cada ano (gráficos)   log/byYear: jornal, jurados e resumo final
-    G={r,year:1,deck:shuffle(DECK.slice(),r),sched,cum:Array(N).fill(0),hist:[0],funded:[],progs:[],nextId:1,pending:{},pendingLoss:{},due:{},
+    //   jr/decks: gerador do jornal, separado do da partida, e os baralhos de cada lista de textos (ver deal)
+    G={r,jr:rng((cfg.seed*7919+cfg.years)^0x9E3779B9),decks:{},year:1,deck:shuffle(DECK.slice(),r),sched,cum:Array(N).fill(0),hist:[0],funded:[],progs:[],nextId:1,pending:{},pendingLoss:{},due:{},
       ev:null,evKey:null,hand:[],chosen:new Set(),active:new Set(),closeSel:new Set(),exit:'ab',exitMemo:null,closed:false,log:[],byYear:[],pens:[],
       apoio:cfg.years===5?APOIO0_5:APOIO0,lastPaid:'ab',exported:{fed:0,transfer:0},evalOn:false,erosionF:1,erosionTemp:null,dilemma:null,dsched:{},f:[],years:[],kOpen:false};
     const dk=shuffle(DILEMMAS.slice(),r);
@@ -1374,7 +1419,7 @@ html{scroll-padding-top:4rem}
     let h='<div class="money" role="group" aria-label="Dinheiro do ano">';
     h+=row('Margem do ano'+(G.ev&&G.ev.marginF?', na crise':'')+(G.margin<base?', com o corte':''),mi(G.margin));
     if(G.fedYear)h+=row('Transferência federal, só este ano','+ '+mi(G.fedYear));
-    h+=row('O máximo que dá para tirar do que deixa de ser feito','+ '+mi(EXTRA));
+    h+=row('Cortes permitidos além da margem','+ '+mi(EXTRA));
     const nP=cl.filter(p=>!G.closeSel.has(p.id)).length,others=K.items.filter(it=>it.id===undefined);
     if(cl.length||others.length){
       const lines=cl.map(p=>{const fed=p.cus*p.h,yr=p.q*p.f,off=G.closeSel.has(p.id);
@@ -1391,6 +1436,7 @@ html{scroll-padding-top:4rem}
     h+=row('Espaço para programas novos',mi(G.room),'tot');
     if(pre>cap+0.5)h+='<p class="hint" style="margin:.3rem 0 0">O que já está comprometido passa do limite do ano em '+mi(pre-cap)+'. Será pago assim mesmo; abaixo das propostas, veja de onde sai cada parte.</p>';
     else if(G.room<0.5)h+='<p class="hint" style="margin:.3rem 0 0">Sem espaço para programas novos. Para abrir espaço, encerre um programa.</p>';
+    h+='<details class="hint" data-k="conta"><summary>Como se calcula o espaço?</summary>A <b>margem</b> é o quanto a receita da saúde cresce no ano; sem programa novo, ela reforçaria a rede. Para abrir espaço a programas novos, dá para ir além dela cortando outros serviços, até '+mi(EXTRA)+' por ano: o resto do orçamento já está preso a folha e contratos. Os <b>compromissos</b> (o custeio do que já funciona e as contas de dilemas) vêm antes de tudo. O espaço é a margem mais esse limite, menos os compromissos. De onde sai cada real, você escolhe mais abaixo, em "o que deixa de ser feito".</details>';
     return h+'</div>';
   }
   // prévia: a conta do ano paga com cada opção ao alcance (quanto de saúde sai e de quem)
@@ -1415,7 +1461,8 @@ html{scroll-padding-top:4rem}
     const debut=ks.filter(k=>G.year>1&&EXITS[k].from===G.year).map(k=>EXITS[k].nm.toLowerCase());
     return '<div class="field" style="margin-top:1.1rem"><div class="lbl"><span>Para pagar a conta do ano, o que deixa de ser feito?</span><span class="apoio" title="Recupera 1 ponto por ano, até '+APOIO_MAX+'" aria-label="Apoio político: '+G.apoio+' de '+APOIO_MAX+' pontos">Apoio '+dots(G.apoio)+'<span class="off">'+dots(APOIO_MAX-G.apoio)+'</span></span></div>'+
       '<div class="presets" role="group" aria-label="O que deixa de ser feito">'+ks.map(k=>{const c=apoioCost(k),s=EXITS[k];
-        return '<button class="chip" type="button" data-exit="'+k+'" aria-pressed="'+(G.exit===k)+'" aria-label="'+s.nm+(s.cap?', até R$ '+s.cap+' milhões':'')+(c?', custa '+c+(c>1?' pontos':' ponto')+' de apoio':', não custa apoio')+'"'+(G.closed||!exitOk(k)?' disabled':'')+'>'+s.nm+(s.cap?' · até R$ '+s.cap+' mi':'')+(c?' · '+dots(c):'')+'</button>';}).join('')+'</div>'+
+        return '<button class="chip" type="button" data-exit="'+k+'" aria-pressed="'+(G.exit===k)+'" aria-label="'+s.nm+(s.cap?', corta até R$ '+s.cap+' milhões por ano':'')+(c?', custa '+c+(c>1?' pontos':' ponto')+' de apoio':', não custa apoio')+'"'+(G.closed||!exitOk(k)?' disabled':'')+'>'+s.nm+(s.cap?' · até R$ '+s.cap+' mi/ano':'')+(c?' · '+dots(c):'')+'</button>';}).join('')+'</div>'+
+      '<p class="hint">O valor em cada botão é o máximo que dá para cortar dali num ano; os pontos (●) são o apoio político que o corte gasta. A conta do ano sai primeiro da opção escolhida, até esse máximo; depois, da margem; o que ainda faltar sai da rotina das unidades básicas.</p>'+
       (debut.length?'<p class="hint"><b>Novo este ano:</b> '+debut.join(' e ')+'.</p>':'')+
       '<p class="hint">'+S.hint+'</p>'+
       '<details class="hint" data-k="quem"><summary>Quem decide?</summary>'+S.quem+'</details>'+
@@ -1557,7 +1604,7 @@ html{scroll-padding-top:4rem}
     if(o.evalOn)G.evalOn=true;
     if(o.erosion)G.erosionF=o.erosion;
     if(o.erosionTemp)G.erosionTemp={f:o.erosionTemp.f,until:G.year+o.erosionTemp.years-1};
-    if(o.negotiate){const ng=o.negotiate;if(G.r()<0.5){for(let i=0;i<N;i++)G.cum[i]+=ng.gainQ[i];addRecurring(ng.amt,G.year+1,cfg.years,'UPA negociada');G.negTxt='O deputado topou: a UPA vai para a periferia.';}else{G.pens.push({amt:ng.penalty,why:'o deputado não gostou da contraproposta da UPA e fez campanha contra a secretaria.'});G.negTxt='O deputado se ofendeu e levou a emenda embora.';}}
+    if(o.negotiate){const ng=o.negotiate;if(G.r()<0.5){for(let i=0;i<N;i++)G.cum[i]+=ng.gainQ[i];addRecurring(ng.amt,G.year+1,cfg.years,'UPA negociada');G.negTxt='O deputado topou: a UPA vai para a periferia.';G.negOk=true;}else{G.negOk=false;G.pens.push({amt:ng.penalty,why:'o deputado não gostou da contraproposta da UPA e fez campanha contra a secretaria.'});G.negTxt='O deputado se ofendeu e levou a emenda embora.';}}
     G.dilemmaNote=o.note||'';G.dilemmaPick={nm:D.nm,opt:o.t+(G.negTxt?' ('+G.negTxt+')':'')};
     computeRoom();
     renderYear();renderPop();toTurn($('gameLeft').querySelector('.yr .y'));
@@ -1606,8 +1653,8 @@ html{scroll-padding-top:4rem}
     let ef=G.erosionF;if(G.erosionTemp){if(G.year<=G.erosionTemp.until)ef*=G.erosionTemp.f;else G.erosionTemp=null;}
     for(let i=0;i<N;i++)lossQ[i]+=EROSION[i]*ef;
     const late=G.pendingLoss[G.year]||Array(N).fill(0);delete G.pendingLoss[G.year];for(let i=0;i<N;i++)lossQ[i]+=late[i];
-    let dmgTxt='';const dmg=Array(N).fill(0);
-    if(G.ev&&G.ev.damage){const mit=G.progs.some(p=>p.tags.includes(G.ev.mitigTag)&&p.start<G.year&&(!p.closedAt||p.closedAt>G.year));G.ev.damage.forEach((d,i)=>{dmg[i]=mit?d/2:d;lossQ[i]+=dmg[i];});dmgTxt=mit?' '+G.ev.mitigTxt:' A epidemia tirou saúde sobretudo dos bairros mais pobres.';}
+    let dmgTxt='',mit=false;const dmg=Array(N).fill(0);
+    if(G.ev&&G.ev.damage){mit=G.progs.some(p=>p.tags.includes(G.ev.mitigTag)&&p.start<G.year&&(!p.closedAt||p.closedAt>G.year));G.ev.damage.forEach((d,i)=>{dmg[i]=mit?d/2:d;lossQ[i]+=dmg[i];});dmgTxt=mit?' '+G.ev.mitigTxt:' A epidemia tirou saúde sobretudo dos bairros mais pobres.';}
     // 10. saldo do ano
     const before=G.cum.slice();for(let i=0;i<N;i++)G.cum[i]+=gainQ[i]-lossQ[i];
     const hB=H0G.map((h,i)=>h+before[i]/POP),hA=H0G.map((h,i)=>h+G.cum[i]/POP);
@@ -1624,7 +1671,9 @@ html{scroll-padding-top:4rem}
     const o=(moodO>0?'sorri':moodO<0?'franze a testa':'anota')+': no saldo ponderado (ε = '+fmt1.format(cfg.eps)+'), o ano foi '+(ewY>=0?'positivo':'negativo')+' ('+sgn(Math.round(ewY))+'), e '+gapTxt+'.'+dmgTxt;
     const head=headline(picks,chosenN,closedNow,tr,nRun);
     const e0=ede(hB,cfg.eps),e1=ede(hA,cfg.eps);
-    const parts=payOrder(Lo.parts),paper=paperData(picks,chosenN,netY,gapB,gapA,negTxt,{tr,parts,Tm,closedNow,repNow,nRun});
+    // como o jornal conta o evento: na epidemia, se havia saneamento; na pressão da indústria, se o tratamento entrou
+    const evCase=!G.ev?'':G.ev.damage?(mit?'mit':'sem'):G.ev.extra?(picks.some(p=>p.card===G.ev.extra.nm)?'sim':'nao'):'';
+    const parts=payOrder(Lo.parts),paper=paperData(picks,chosenN,netY,gapB,gapA,negTxt,{tr,parts,Tm,closedNow,repNow,nRun,future,evCase});
     G.log.push({c,o,head,paper,chosenN,moodC:shrug?0:(netY>=0?1:-1),moodO,real:realTxt.join('; ')+(realTxt.length?'.':''),netY,ewY,
       math:{gainQ:gainQ.slice(),lossQ:lossQ.slice(),hB,hA,e0,e1,a0:1-e0/mean(hB),a1:1-e1/mean(hA),now:Lo.now.slice(),d:Lo.d,parts,tr,Tm,K:K.mun,fedK:K.fed,newMun,dil,forcedMun:G.forcedMun,eros:EROSION.map(x=>x*ef),late:late.slice(),dmg}});
     const paid=parts.map(p=>p.key==='margin'?'margem':EXITS[p.key].short);if(tr.fed>0)paid.unshift('transferência');
@@ -1649,31 +1698,175 @@ html{scroll-padding-top:4rem}
     {k:'Educação',t:'Escola municipal ganha horta. Alunos aprendem de onde vem o tomate; três pais aprendem junto.'},
     {k:'Anúncio',t:'Farmácia do Zé: aferimos sua pressão de graça e vendemos o remédio em seguida. Convênio com todos os planos, exceto o seu.'},
     {k:'Trânsito',t:'Ambulância leva 52 minutos para cruzar a cidade. Motorista relata que foi ultrapassado por um carrinho de pipoca na avenida.'},
-    {k:'Ciência',t:'Pesquisadores da universidade pedem dados da secretaria para estudo. Secretaria pede dados dos pesquisadores para saber quem são.'}
+    {k:'Ciência',t:'Pesquisadores da universidade pedem dados da secretaria para estudo. Secretaria pede dados dos pesquisadores para saber quem são.'},
+    {k:'Cidade',t:'Fila do posto do Jardim das Flores ganha cadeiras novas. "Agora dá para esperar sentado", comemora Dona Zuleide, que chegou às 5h.'},
+    {k:'Classificados',t:'Aluga-se vaga de garagem perto do hospital central. Ideal para quem passa o dia na fila de exames.'},
+    {k:'Horóscopo da saúde',t:'Áries: hora de marcar a consulta adiada. Touro: o retorno também conta. Sagitário: protetor solar não é opcional.'},
+    {k:'Esporte',t:'Time de futebol dos agentes comunitários vence o dos médicos por 3 a 1. Os médicos atribuem a derrota ao plantão da véspera.'},
+    {k:'Obras',t:'Ciclovia nova liga o centro ao parque. Ciclistas aprovam; o pipoqueiro do parque, que perdeu o ponto, ainda não.'},
+    {k:'Tempo',t:'Onda de calor deve durar até sexta. A secretaria recomenda água, sombra e visitar a avó, que não lembra de beber água.'},
+    {k:'Anúncio',t:'Ótica Bom Olhar: óculos em 12 vezes sem juros. Faça antes o exame de vista; indicamos um oftalmologista, que atende em março.'},
+    {k:'Cartas do leitor',t:'"Por que o remédio da pressão acaba sempre no dia 20?", pergunta leitora da Vila Rica. A farmácia municipal promete resposta até o dia 20.'},
+    {k:'Cidade',t:'Vacinação na feira livre aplica 900 doses em um sábado. O pastel da barraca vizinha também bateu recorde.'},
+    {k:'Nota de esclarecimento',t:'Diferentemente do publicado ontem, a nova unidade básica não terá heliponto. Terá bicicletário.'},
+    {k:'Receita da semana',t:'Salada de feijão-fradinho com tomate e cebola. Barata, cheia de fibras e aprovada por 7 de 10 nutricionistas; as outras três estavam de férias.'},
+    {k:'Coluna social',t:'Reunião do conselho municipal de saúde termina às 23h. Os conselheiros saíram exaustos; o café, esgotado.'},
+    {k:'Anúncio',t:'Clínica Popular Sorriso: consulta a preço fixo, sem fila. Exames à parte; retorno à parte; estacionamento à parte.'},
+    {k:'Cidade',t:'Moradores da Vila Operária pintam a faixa de pedestres em frente à escola. A prefeitura agradece e promete pintar a próxima.'},
+    {k:'Educação',t:'Alunos do 5º ano visitam a unidade básica e entrevistam a enfermeira. Pergunta mais votada: "a vacina dói?". Resposta: "menos que a dengue".'},
+    {k:'Trânsito',t:'Semáforo da avenida principal ganha botão para pedestres. Teste da reportagem: quatro minutos de espera, ou uma corrida curta.'},
+    {k:'Ciência',t:'Estudo da universidade local conclui que dormir bem faz bem. Os autores pedem mais pesquisas, de preferência depois do almoço.'},
+    {k:'Cidade',t:'Gincana da terceira idade reúne 300 participantes no ginásio. Prova mais disputada: achar a receita dos óculos dentro da bolsa.'},
+    {k:'Classificados',t:'Doa-se esteira ergométrica em bom estado. Também serve de cabideiro, como serviu nos últimos dois anos.'},
+    {k:'Tecnologia',t:'Prefeitura lança aplicativo para marcar consulta. Na primeira semana, a fila para instalar o aplicativo foi na própria unidade básica.'},
+    {k:'Esporte',t:'Caminhada contra o sedentarismo reúne 2 mil pessoas no domingo. Os organizadores contam que 1.800 voltaram de ônibus.'},
+    {k:'Anúncio',t:'Suplemento Vida Total: energia, foco e disposição. Eficácia comprovada por depoimentos de clientes satisfeitos e por nenhum estudo.'},
+    {k:'Cidade',t:'Cachorro caramelo adota a portaria do pronto-socorro. Já conhece todos os plantonistas e late para quem fura a fila.'},
+    {k:'Saúde',t:'Triagem de visão nas escolas encontra 400 crianças que precisam de óculos. Uma delas achava que todo mundo via a lousa embaçada.'},
+    {k:'Tempo',t:'Frente fria chega no fim de semana. A procura por xarope sobe 40%; por agasalho, só 10%.'},
+    {k:'Obras',t:'Recapeamento da rua da unidade básica termina antes do prazo. Desconfiados, os moradores chamaram um engenheiro para conferir.'},
+    {k:'Cartas do leitor',t:'"A placa diz que a unidade abre às 7h, mas a fila começa às 5h. Qual horário vale?", pergunta um leitor. Os dois, responde a gerente.'},
+    {k:'Cidade',t:'Concurso de hortas comunitárias premia o terreno baldio que virou pomar. O dono do terreno, que mora em outra cidade, soube pelo jornal.'},
+    {k:'Anúncio',t:'Plano Saúde Já: cobertura nacional e carência zero para resfriado. Demais doenças, consulte o contrato, página 41, letra miúda.'},
+    {k:'Esporte',t:'Equipe de vôlei da maternidade vence o torneio dos servidores. A técnica atribui o título à "capacidade de reagir rápido às três da manhã".'},
+    {k:'Ciência',t:'Pesquisadora mostra que lavar as mãos reduz infecção no hospital. A descoberta tem mais de 170 anos; a pia nova, duas semanas.'},
+    {k:'Trânsito',t:'Linha nova de ônibus liga o Jardim Esperança ao hospital regional. A viagem caiu de duas conduções para uma.'},
+    {k:'Cidade',t:'Farmácia do bairro instala balança gratuita na porta. O movimento aumentou; as vendas, nem tanto.'},
+    {k:'Coluna social',t:'Secretário da Fazenda é visto comendo pastel na feira. A assessoria esclarece que o pastel foi pago com recursos próprios.'}
   ];
-  // x: {tr, parts, Tm, closedNow, repNow, nRun} da conta do ano (closeYear)
+  // Variações de texto do jornal; {p} programa, {c} programas encerrados, {w} aposta de evidência fraca, {n} programas
+  // em funcionamento, {y} ano, {k} quantos programas novos, {l} lista deles, {x} saldo do ano, {d} dias por pessoa
+  const JORNAL={
+    manchete:{
+      aposta:['Cidade aposta em "{w}"; especialistas pedem cautela com a evidência.','"{w}" chega à cidade com promessa alta e evidência fraca; universidade pede avaliação.','Secretaria banca "{w}"; o estudo que sustenta a promessa é pequeno, dizem pesquisadores.'],
+      pref:['Para pagar {p}, prefeitura adia obras e corta linha de ônibus; vereadores reagem.','Saúde ganha {p}; drenagem e assistência social perdem verba, e a Câmara quer explicações.','Prefeito tira verba de outras pastas para bancar {p}; obras ficam para depois.'],
+      busca:['Equipes vão de casa em casa: com {p}, a secretaria chega a bairros que nunca tinham sido atendidos.','Busca ativa: com {p}, agentes procuram quem nunca apareceu na unidade.','Bate à porta: com {p}, a saúde vai até quem não chega sozinho.'],
+      gratuito:['Passagem paga: com {p}, quem faltava por falta de dinheiro para o ônibus passa a chegar ao serviço.','Sem a desculpa da passagem: com {p}, transporte gratuito leva pacientes até o atendimento.'],
+      fila:['Secretaria lança {p}; filas de cirurgia e exames crescem.','Com {p} na conta, a espera por cirurgias eletivas aumenta.','Cotas de exames encolhem para bancar {p}; quem não tem plano espera mais.'],
+      baixo:['Secretaria lança {p} e deixa de pagar exames sem indicação; laboratórios protestam.','Check-up sem indicação sai da lista da prefeitura, e o dinheiro vai para {p}.','Regulação aperta o protocolo de exames para bancar {p}; entidades médicas reclamam.'],
+      rotina:['Secretaria lança {p}; unidades básicas sentem o aperto.','Secretaria aposta em {p}, e postos de saúde passam a fechar mais cedo.','Chega {p}; nas unidades básicas, vagas ficam sem reposição.'],
+      margem:['Secretaria lança {p}; a rede fica sem o reforço que estava previsto.','A receita nova vai para {p}, e as equipes previstas para os bairros ficam no papel.'],
+      troca:['Secretaria encerra {c} para abrir espaço e lança {p}.','Sai {c}, entra {p}: secretaria troca programas para caber no orçamento.'],
+      encerra:['Secretaria encerra {c}; usuários protestam na porta das unidades.','Fim de linha para {c}: secretaria corta o custeio, e usuários protestam.'],
+      mantem:['Secretaria fecha o ano sem programas novos; {n} em funcionamento {s}.','Ano sem novidade na saúde: {n} em funcionamento {s}, e nada entra.'],
+      vazio:['Secretaria fecha o ano sem programas novos; conselho municipal de saúde cobra explicações.','Nenhum programa novo, nenhum em funcionamento: conselho de saúde convoca a secretaria.']
+    },
+    abertura:['A Secretaria Municipal de Saúde encerrou {y} com {k}: {l}.','Em {y}, a Secretaria Municipal de Saúde tirou do papel {k}: {l}.','O ano de {y} na saúde municipal terminou com {k}: {l}.'],
+    balanco:{
+      pos:['Segundo o balanço anual divulgado nesta semana, a cidade ganhou o equivalente a {x} anos de vida saudável, já descontado o que deixou de ser feito para pagar a conta.',
+           'O balanço anual, apresentado ao conselho municipal nesta semana, fecha no azul: {x} anos de vida saudável a mais, já descontado o que deixou de ser feito.',
+           'As contas do ano, divulgadas nesta semana, mostram saldo positivo de {x} anos de vida saudável, depois de descontar o que a rede deixou de fazer.'],
+      neg:['O balanço anual divulgado nesta semana, porém, mostra saldo negativo: o que deixou de ser feito tirou mais saúde do que os programas devolveram até agora, uma diferença de {x} anos de vida saudável.',
+           'Os números do balanço anual, porém, não ajudam: o ano fechou com {x} anos de vida saudável a menos, porque o que deixou de ser feito pesou mais do que o que os programas já entregaram.'],
+      depois:['Técnicos da pasta lembram que parte do ganho ainda vai aparecer nos próximos anos; a oposição lembra que a perda aparece agora.',
+              'A secretaria diz que o que foi plantado ainda vai render; o conselho municipal quer ver para crer.']
+    },
+    distancia:{
+      igual:['A distância em saúde entre os bairros mais pobres e os mais ricos ficou praticamente onde estava.',
+             'Entre os bairros mais pobres e os mais ricos, a distância em saúde não se mexeu. A associação de moradores da periferia diz que "não mexer também é escolha".'],
+      caiu:['O relatório aponta ainda que a distância em saúde entre os bairros mais pobres e os mais ricos encolheu {d} dias por pessoa no ano, o que a secretaria comemora e a oposição chama de "detalhe estatístico".',
+            'A distância em saúde entre os bairros mais pobres e os mais ricos caiu {d} dias por pessoa. Na periferia, a associação de moradores diz que "é pouco, mas é para o lado certo".',
+            'Pelo relatório, os bairros mais pobres encurtaram em {d} dias por pessoa a distância que os separa dos mais ricos. Uma pesquisadora da universidade chama o resultado de "raro e bem-vindo".'],
+      subiu:['O relatório aponta ainda que a distância em saúde entre os bairros mais pobres e os mais ricos aumentou {d} dias por pessoa no ano. Procurada, a secretaria afirmou que "o saldo total é o que importa"; o conselho municipal discorda.',
+             'A distância em saúde entre os bairros mais pobres e os mais ricos cresceu {d} dias por pessoa. "Quem já tinha mais ganhou mais", resume uma conselheira municipal de saúde.',
+             'O relatório registra que a diferença entre os extremos da cidade aumentou {d} dias por pessoa. A secretaria diz que vai olhar o dado "com atenção"; na periferia, ele é visto todo dia.']
+    },
+    // quando a conta saiu da margem: a rede deixou de ganhar o reforço que a receita nova pagaria
+    margem:['A rede não ganhou o reforço que a receita maior pagaria: as equipes previstas para os bairros ficaram no papel.',
+            'A ampliação de horário das unidades, que a receita nova pagaria, ficou para depois. Quem trabalha até as 18h continua sem consulta.',
+            'O concurso para novos enfermeiros, prometido com a receita do ano, foi adiado. As equipes seguem incompletas.',
+            'A reforma das unidades básicas mais antigas, que a receita nova bancaria, saiu do cronograma. Na do Morro Alto, a sala de vacina segue sem ar-condicionado.'],
+    encerrado:['A secretaria encerrou {c}. Quem era atendido protestou na porta das unidades; o que já foi plantado ainda rende por um tempo.',
+               'Fim de {c}: as equipes foram desmobilizadas, e os usuários, avisados por cartaz. Técnicos lembram que o efeito do que já foi feito continua por um tempo.',
+               'Com o fim de {c}, o custeio volta para a conta do ano. Na porta da unidade, um abaixo-assinado juntou 2 mil nomes em uma semana.'],
+    calmo:['<b>Ano sem sobressaltos.</b> Nenhuma epidemia, nenhuma decisão judicial e nenhuma visita inesperada à secretaria. O editor de saúde agradece.',
+           '<b>Ano tranquilo.</b> Sem greve, sem enchente e sem liminar. O plantão da redação passou o ano cobrindo inauguração de placa.',
+           '<b>Calmaria.</b> Nenhum evento extraordinário no ano; a secretaria diz que finalmente conseguiu ler os próprios relatórios.']
+  };
+  // Carta do leitor de cada ano, escolhida pelo que aconteceu: quem pagou a conta, para quem foi o programa novo,
+  // encerramento, aposta em evidência fraca, ano sem programas, e se a distância entre os bairros caiu ou subiu
+  const CARTAS={
+    ab:['"A unidade do meu bairro agora fecha às 17h. Eu saio do trabalho às 18h. Quem decidiu esse horário não pega dois ônibus." Cleide, Jardim Esperança',
+        '"Faz quatro meses que ninguém da saúde passa aqui em casa. Minha mãe tem 82 anos e não sai sozinha." Antônio, Vila Operária',
+        '"Trocaram três vezes o médico do posto este ano. Toda vez eu conto a minha história do começo." Rosângela, Morro Alto',
+        '"Fui renovar a receita do remédio da pressão e a consulta ficou para daqui a dois meses. O remédio acaba antes." Seu Damião, Parque Industrial'],
+    fila:['"Meu marido espera a cirurgia do joelho há dois anos. Agora disseram que a cota diminuiu. Diminuiu para quem?" Neusa, Parque das Águas',
+          '"Fiz a conta: se a fila andar nesse ritmo, opero a catarata aos 83." Seu Lauro, Vila Nova',
+          '"Paguei a ressonância do meu filho no particular, com o dinheiro do aluguel. A do SUS estava marcada para depois da formatura dele." Rita, Vila Rica'],
+    pref:['"Cortaram o ônibus da madrugada. Trabalho no turno da noite do hospital e agora volto a pé." Edna, Jardim Esperança',
+          '"A obra do córrego era para este ano. Comprei mais uma bomba d\'água." Gilberto, Vila Nova',
+          '"O CRAS do bairro agora abre três dias por semana. A fila do cadastro começa de madrugada." Josefa, Morro Alto'],
+    baixo:['"Sempre fiz check-up completo todo ano, e agora o posto diz que não tenho indicação. Vou pagar do bolso, mas fica registrado o protesto." Dr. Henrique, centro',
+           '"Meu médico explicou que o exame que pedi não mudaria nada no tratamento. Fiquei sem o exame e com a explicação." Sandra, Jardim Europa',
+           '"Sou médica de família. Explicar ao paciente que um exame não vai ajudar leva mais tempo do que pedir o exame. Mas é o certo." Dra. Lúcia, Vila Operária'],
+    margem:['"Prometeram uma equipe nova de saúde da família no bairro. A placa está lá desde a campanha." Marcos, Parque Industrial',
+            '"A receita subiu, diz o jornal. A reforma do nosso posto, que espera há anos, não veio." Aparecida, Morro Alto',
+            '"Quando a prefeitura arrecada mais, o posto não muda. Quando arrecada menos, piora. Alguém explica?" Seu Jorge, Vila Nova'],
+    encerrou:['"Fecharam o programa bem quando meu pai começava a melhorar. O que já foi feito não volta atrás; o que ia ser feito, sim." Juliana, Vila Rica',
+              '"Encerrar programa é fácil no papel. Quero ver explicar para quem estava sendo atendido." Associação de moradores do Jardim Esperança',
+              '"Eu entendo que o dinheiro acabou. Só queria ter sido avisado antes de a equipe sumir." Valter, Parque das Águas',
+              '"Programa que começa e termina no mesmo mandato deixa a gente desconfiado do próximo." Conselheiro municipal de saúde, região norte'],
+    pobres:['"O programa novo começou pelo nosso bairro, e não pelo centro. Vou esperar para ver se fica." Dona Raimunda, Parque das Águas',
+            '"A equipe veio até a minha casa. Vinte anos morando aqui, e eu já nem esperava." Seu Joaquim, Morro Alto',
+            '"O serviço novo fica a duas quadras de casa. Minha mãe, que não ia ao médico havia anos, foi." Cristiane, Vila Operária'],
+    ricos:['"Ótimo o serviço novo no centro. Pena que, do meu bairro, são duas conduções para chegar lá." Edileuza, Jardim Esperança',
+           '"Usei o serviço novo e gostei muito. Moro a cinco minutos." Ricardo, Jardim Europa',
+           '"Quem mais usa o programa novo é quem já tinha plano. Na minha rua, ninguém sabe que ele existe." Sueli, Parque Industrial'],
+    aposta:['"Li que o estudo do tratamento novo tem poucos pacientes. Quem decide com tão pouca evidência?" Professora Márcia, Cidade Universitária',
+            '"Minha filha foi chamada para o tratamento novo. Estamos com esperança e com medo, as duas coisas." Ana Paula, Vila Rica',
+            '"Se der certo, ótimo. Se não der, quero saber quanto custou e o que deixou de ser feito no lugar." Leitor identificado, centro'],
+    nada:['"Um ano inteiro sem nenhuma novidade na saúde. Pelo menos não pioraram nada. Ou pioraram?" Seu Benedito, centro',
+          '"Não vi nada de novo na saúde este ano. Se é para manter o que existe, que pelo menos o posto abra no horário." Lurdes, Vila Nova',
+          '"Pergunto à secretaria: um ano sem novidade é falta de dinheiro ou falta de escolha?" Leitor identificado, Parque Industrial'],
+    perto:['"Meus netos vão viver mais do que eu teria vivido. Que continue." Dona Ivone, Parque das Águas',
+           '"Na minha rua, três vizinhos fizeram o exame que nunca tinham feito. Para mim, é isso que o número do jornal quer dizer." Francisca, Jardim Esperança',
+           '"Diminuir a distância entre os bairros não aparece em inauguração. Aparece no velório que não acontece." Conselheira municipal de saúde, região leste'],
+    longe:['"Li no jornal que a diferença de saúde entre os bairros aumentou. Aqui no Morro Alto, a gente nem precisava ler." Valdete, Morro Alto',
+           '"O centro ganhou mais uns dias de vida saudável, e nós, menos. É assim todo ano?" Gerson, Parque Industrial',
+           '"Moro no Jardim Europa e fico feliz com a saúde boa por aqui. Mas cidade boa é a cidade inteira." Helena, Jardim Europa']
+  };
+  // O jornal tira os textos com o próprio gerador (G.jr), separado do da partida: mais textos não mudam o que cada
+  // código de partida produz. Cada lista é um baralho, então um texto só se repete quando a lista acaba.
+  function deal(key,arr){const d=G.decks[key]||(G.decks[key]=[]);if(!d.length)d.push(...shuffle(arr.map((_,i)=>i),G.jr));return arr[d.pop()];}
+  const tpl=(t,v)=>t.replace(/\{(\w)\}/g,(m,k)=>v[k]); // "Secretaria lança {p}" com v={p:'...'}
+  const ext=n=>['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez'][n]||String(n); // números por extenso, como no jornal
+  // x: {tr, parts, Tm, closedNow, repNow, nRun, future, evCase} do ano (closeYear)
   function paperData(picks,chosenN,netY,gapB,gapA,negTxt,x){
     const meses=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-    const mes=meses[Math.floor(G.r()*3)],dia=1+Math.floor(G.r()*28); // o balanço sai entre janeiro e março do ano seguinte
-    const idx=shuffle(BREVES.map((_,i)=>i),G.r).slice(0,2);
-    const list=a=>a.length===1?a[0]:a.slice(0,-1).join(', ')+' e '+a[a.length-1];
-    const fund=picks.filter(p=>!isForced(p)).map(p=>plain(p.nm));
+    const mes=meses[Math.floor(G.jr()*3)],dia=1+Math.floor(G.jr()*28); // o balanço sai entre janeiro e março do ano seguinte
+    const J=JORNAL,list=a=>a.length===1?a[0]:a.slice(0,-1).join(', ')+' e '+a[a.length-1];
+    const real=picks.filter(p=>!isForced(p)),fund=real.map(p=>plain(p.nm)),big=real.slice().sort((a,b)=>b.cost-a.cost)[0];
     const d=gapA-gapB,yr=Y0+G.year-1;
-    const bal=netY>=0?'Segundo o balanço anual divulgado nesta semana, a cidade ganhou o equivalente a '+fmt.format(Math.round(netY))+' anos de vida saudável, já descontado o que deixou de ser feito para pagar a conta.':'O balanço anual divulgado nesta semana, porém, mostra saldo negativo: o que deixou de ser feito tirou mais saúde do que os programas devolveram até agora, uma diferença de '+fmt.format(Math.abs(Math.round(netY)))+' anos de vida saudável.';
-    const lede=chosenN>0?'A Secretaria Municipal de Saúde encerrou '+yr+' com '+(fund.length===1?'um programa novo':fund.length+' programas novos')+': '+list(fund)+'. '+bal
-      :x.nRun?'A Secretaria Municipal de Saúde encerrou '+yr+' sem contratar nenhum programa novo; '+(x.nRun===1?'o programa em funcionamento segue':'os '+x.nRun+' programas em funcionamento seguem')+', e o custeio deles continua na conta. '+bal
+    const bal=tpl(deal(netY>=0?'bal+':'bal-',netY>=0?J.balanco.pos:J.balanco.neg),{x:fmt.format(Math.abs(Math.round(netY)))})+(netY<0&&x.future>0.5?' '+deal('bal:depois',J.balanco.depois):'');
+    const lede=chosenN>0?tpl(deal('abertura',J.abertura),{y:yr,k:fund.length===1?'um programa novo':ext(fund.length)+' programas novos',l:list(fund)})+' '+bal
+      :x.nRun?'A Secretaria Municipal de Saúde encerrou '+yr+' sem contratar nenhum programa novo; '+(x.nRun===1?'o programa em funcionamento segue':'os '+ext(x.nRun)+' programas em funcionamento seguem')+', e o custeio deles continua na conta. '+bal
       :'A Secretaria Municipal de Saúde encerrou '+yr+' sem nenhum programa em funcionamento. Segundo técnicos da pasta, a margem do ano ficou na rede. Na prática, porém, o balanço anual indica que a rede perdeu terreno: a cidade envelheceu, a demanda cresceu e nada entrou no lugar.';
-    const dist=Math.abs(d)<0.05?'A distância em saúde entre os bairros mais pobres e os mais ricos ficou praticamente onde estava.':d<0?'O relatório aponta ainda que a distância em saúde entre os bairros mais pobres e os mais ricos encolheu '+fmt1.format(-d)+' dias por pessoa no ano, o que a secretaria comemora e a oposição chama de "detalhe estatístico".':'O relatório aponta ainda que a distância em saúde entre os bairros mais pobres e os mais ricos aumentou '+fmt1.format(d)+' dias por pessoa no ano. Procurada, a secretaria afirmou que "o saldo total é o que importa"; o conselho municipal discorda.';
+    const dist=Math.abs(d)<0.05?deal('dist=',J.distancia.igual):tpl(deal(d<0?'dist-':'dist+',d<0?J.distancia.caiu:J.distancia.subiu),{d:fmt1.format(Math.abs(d))});
     // quem pagou a conta: a opção do ano, se pagou algo; senão a rotina; senão a margem
     const ps=x.parts,main=ps.find(p=>p.key===x.tr.k&&p.key!=='ab')||ps.find(p=>p.key==='ab')||ps[0];
-    const who=!main?'':main.key==='margin'?'A rede não ganhou o reforço que a receita maior pagaria: as equipes previstas para os bairros ficaram no papel.':EXITS[main.key].who[G.year%2];
+    const who=!main?'':main.key==='margin'?deal('who:margem',J.margem):deal('who:'+main.key,EXITS[main.key].who);
     const paid=ps.map((p,k)=>mi(p.amt)+(k?' ':' saíram ')+DA[p.key]);
-    const pay=x.Tm<0.5?'':' <b>Quem pagou a conta.</b> '+(x.tr.fed>0?'A transferência federal pagou '+mi(x.tr.fed)+(ps.length?'; do resto, ':', e nada saiu da cidade.'):'Dos '+mi(x.Tm)+' do ano, ')+(ps.length?list(paid)+'. '+who:'')+
+    const pay=x.Tm<0.5?'':' <b>Quem pagou a conta.</b> '+(x.tr.fed>0?'A transferência federal pagou '+mi(x.tr.fed)+(ps.length?'; do resto, '+list(paid)+'. ':', e nada saiu da cidade.'):ps.length===1?'Os '+mi(x.Tm)+' do ano saíram todos '+DA[ps[0].key]+'. ':'Dos '+mi(x.Tm)+' do ano, '+list(paid)+'. ')+who+
       (x.repNow?(x.tr.k==='fila'?' A fila cresceu pelo segundo ano seguido; o Ministério Público pediu explicações à secretaria.':' Pelo segundo ano seguido, a regulação cortou exames; as entidades médicas foram à Câmara.'):'')+
       (G.ev&&G.ev.oc&&ps.some(p=>!(EXITS[p.key]||{}).spare)?' Na greve, o corte caiu ainda mais sobre quem só tem o SUS.':'');
-    const cl=x.closedNow.length?' <b>Encerrado.</b> A secretaria encerrou '+list(x.closedNow.map(p=>lc(plain(p.nm))))+'. Quem era atendido protestou na porta das unidades; o que já foi plantado ainda rende por um tempo.':'';
-    const evTxt=G.ev?'<b>'+G.ev.nm+'.</b> '+G.ev.txt:(G.dilemma?'<b>'+G.dilemma.nm+'.</b> '+G.dilemma.txt+' A secretaria optou por "'+lc1(G.dilemma.opts[G.dilemmaChoice].t)+'".'+(negTxt?' '+negTxt:''):'<b>Ano sem sobressaltos.</b> Nenhuma epidemia, nenhuma decisão judicial e nenhuma visita inesperada à secretaria. O editor de saúde agradece.');
-    return {dia,mes,lede,dist:dist+pay+cl,evTxt,breves:idx.map(i=>BREVES[i])};
+    const cl=x.closedNow.length?' <b>Encerrado.</b> '+tpl(deal('encerrado',J.encerrado),{c:list(x.closedNow.map(p=>lc(plain(p.nm))))}):'';
+    // o evento ou o dilema do ano, contado depois do que aconteceu
+    let evTxt;
+    if(G.ev){const j=G.ev.jornal,pool=Array.isArray(j)?j:j[x.evCase];evTxt='<b>'+G.ev.nm+'.</b> '+deal('ev:'+G.evKey+x.evCase,pool);}
+    else if(G.dilemma){const o=G.dilemma.opts[G.dilemmaChoice],j=o.jornal;evTxt='<b>'+G.dilemma.nm+'.</b> A secretaria optou por "'+lc1(o.t)+'".'+(negTxt?' '+negTxt:'')+(j?' '+(typeof j==='string'?j:j[G.negOk?'ok':'no']):'');}
+    else evTxt=deal('calmo',J.calmo);
+    // a carta do leitor fala de uma das coisas que aconteceram no ano
+    const ks=[];
+    if(x.closedNow.length)ks.push('encerrou');
+    else{
+      if(main)ks.push(main.key==='margin'?'margem':main.key);
+      if(big){const t=lean(big.sh);if(t>10)ks.push('pobres');else if(t<-10)ks.push('ricos');}
+      if(real.some(p=>p.ev==='fraca'))ks.push('aposta');
+      if(chosenN===0)ks.push('nada');
+      if(d<-0.05)ks.push('perto');else if(d>0.05)ks.push('longe');
+    }
+    const ck=ks.length?ks[Math.floor(G.jr()*ks.length)]:'nada';
+    return {dia,mes,lede,dist:dist+pay+cl,evTxt,carta:deal('carta:'+ck,CARTAS[ck]),breves:[deal('breves',BREVES),deal('breves',BREVES)]};
   }
   function newspaper(y){
     const P=y.paper,yr=Y0+G.year;
@@ -1681,7 +1874,7 @@ html{scroll-padding-top:4rem}
     return '<div class="paper pulse"><div class="mast"><span class="ed">'+P.dia+' de '+P.mes+' de '+yr+'</span><span class="nm">A Gazeta da Cidade</span><span class="ed">Ano '+(G.year)+' · R$ 2,50</span></div>'+
       '<div class="pgrid"><div class="main"><p class="kick">Saúde</p><h3 class="head">'+y.head+'</h3>'+
       '<div class="cols"><p>'+P.lede+'</p><p>'+P.dist+'</p>'+realP+'<p>'+P.evTxt+'</p></div></div>'+
-      '<aside class="side"><p class="kick">Breves</p>'+P.breves.map(b=>'<p><span class="bk">'+b.k+'</span>'+b.t+'</p>').join('')+'</aside></div></div>';
+      '<aside class="side">'+(P.carta?'<p class="kick">Cartas</p><p class="carta">'+P.carta+'</p>':'')+'<p class="kick">Breves</p>'+P.breves.map(b=>'<p><span class="bk">'+b.k+'</span>'+b.t+'</p>').join('')+'</aside></div></div>';
   }
   // planilha da DCEA do ano (opção "Mostrar a conta")
   function mathHtml(y){
@@ -1703,29 +1896,28 @@ html{scroll-padding-top:4rem}
   const lc1=t=>t.charAt(0).toLowerCase()+t.slice(1); // só a primeira letra: "Resposta (R$ 80 mi)" → "resposta (R$ 80 mi)"
   function headline(picks,chosenN,closedNow,tr,nRun){
     // a nota do dilema ("a manchete do fim do ano vai lembrar") sai com ou sem programa novo
-    const note=G.dilemmaNote;G.dilemmaNote='';
-    const cl=closedNow.length?lc(plain(closedNow[0].nm))+(closedNow.length>1?' e mais '+(closedNow.length-1)+(closedNow.length>2?' programas':' programa'):''):'';
+    const note=G.dilemmaNote;G.dilemmaNote='';const H=JORNAL.manchete;
+    const c=closedNow.length?lc(plain(closedNow[0].nm))+(closedNow.length>1?' e mais '+ext(closedNow.length-1)+(closedNow.length>2?' programas':' programa'):''):'';
+    const pre=t=>(note?note+' ':'')+t;
     if(chosenN===0){
-      if(cl)return (note?note+' ':'')+'Secretaria encerra '+cl+'; usuários protestam na porta das unidades.';
+      if(c)return pre(tpl(deal('h:encerra',H.encerra),{c}));
       if(note)return note+' Secretaria fecha o ano sem programas novos.';
-      return nRun?'Secretaria fecha o ano sem programas novos; '+(nRun===1?'o programa em funcionamento segue':'os '+nRun+' programas em funcionamento seguem')+'.':'Secretaria fecha o ano sem programas novos; conselho municipal de saúde cobra explicações.';
+      return nRun?tpl(deal('h:mantem',H.mantem),{n:nRun===1?'o programa':'os '+ext(nRun)+' programas',s:nRun===1?'segue':'seguem'}):deal('h:vazio',H.vazio);
     }
     const real=picks.filter(p=>!isForced(p));
-    const big=real.slice().sort((a,b)=>b.cost-a.cost)[0];
-    if(note)return note+' Enquanto isso, a secretaria lança '+lc(plain(big.nm))+'.';
-    if(cl)return 'Secretaria encerra '+cl+' para abrir espaço e lança '+lc(plain(big.nm))+'.';
-    const weak=real.find(p=>p.ev==='fraca');
-    if(weak)return 'Cidade aposta em "'+plain(weak.nm)+'"; especialistas pedem cautela com a evidência.';
+    const big=real.slice().sort((a,b)=>b.cost-a.cost)[0],p=lc(plain(big.nm));
+    if(note)return note+' Enquanto isso, a secretaria lança '+p+'.';
+    if(c)return tpl(deal('h:troca',H.troca),{c,p});
+    const weak=real.find(q=>q.ev==='fraca');
+    if(weak)return tpl(deal('h:aposta',H.aposta),{w:plain(weak.nm)});
     const own=tr.exit>0?tr.k:null;
-    if(own==='pref')return 'Para pagar '+lc(plain(big.nm))+', prefeitura adia obras e corta linha de ônibus; vereadores reagem.';
+    if(own==='pref')return tpl(deal('h:pref',H.pref),{p});
     // a manchete cita o programa que tem o complemento, não o mais caro do ano
-    const ba=real.find(p=>/busca ativa/.test(p.nm)),tg=real.find(p=>/transporte gratuito/.test(p.nm));
-    if(ba)return 'Equipes vão de casa em casa: com '+lc(plain(ba.nm))+', a secretaria chega a bairros que nunca tinham sido atendidos.';
-    if(tg)return 'Passagem paga: com '+lc(plain(tg.nm))+', quem faltava por falta de dinheiro para o ônibus passa a chegar ao serviço.';
-    if(own==='fila')return 'Secretaria lança '+lc(plain(big.nm))+'; filas de cirurgia e exames crescem.';
-    if(own==='baixo')return 'Secretaria lança '+lc(plain(big.nm))+' e deixa de pagar exames sem indicação; laboratórios protestam.';
-    if(tr.ab>0)return 'Secretaria lança '+lc(plain(big.nm))+'; unidades básicas sentem o aperto.';
-    return 'Secretaria lança '+lc(plain(big.nm))+'; a rede fica sem o reforço que estava previsto.';
+    const ba=real.find(q=>/busca ativa/.test(q.nm)),tg=real.find(q=>/transporte gratuito/.test(q.nm));
+    if(ba)return tpl(deal('h:busca',H.busca),{p:lc(plain(ba.nm))});
+    if(tg)return tpl(deal('h:gratuito',H.gratuito),{p:lc(plain(tg.nm))});
+    if(own==='fila'||own==='baixo')return tpl(deal('h:'+own,H[own]),{p});
+    return tpl(deal(tr.ab>0?'h:rotina':'h:margem',tr.ab>0?H.rotina:H.margem),{p});
   }
   // Legado = ganhos já plantados que ainda vão aparecer − perdas adiadas que ainda vão vencer
   function popStats(){
