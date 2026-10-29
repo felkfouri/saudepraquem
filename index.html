@@ -1147,6 +1147,7 @@ html{scroll-padding-top:4rem}
   //   budget     R$ mi tirados deste ano (entram na conta do ano e deslocam saúde)   gainQ/lossQ  QALYs por grupo, agora
   //   penalty    R$ mi a menos na margem do ano seguinte (why: motivo exibido no aviso)
   //   recurring  {amt, years, nm}: compromisso anual a partir do ano seguinte
+  //   gainYear   QALYs por grupo em cada ano, do ano seguinte até o fim do mandato (também em negotiate)
   //   evalOn     liga a estimativa local de realização nos cards   erosion  fator permanente sobre a erosão
   //   erosionTemp {f, years}: fator temporário sobre a erosão       negotiate  resultado sorteado (50%)
   //   note       nota do ano para a manchete      jornal  o que o jornal conta depois ({ok, no} na negociação)
@@ -1154,37 +1155,39 @@ html{scroll-padding-top:4rem}
     {id:'fila',nm:'A fila na primeira página',txt:'Um jornal publicou a lista de espera de cirurgias com nomes e tempos: 4 anos para hérnia, 3 para vesícula. A câmara convocou você para explicar.',
       opts:[{t:'Mutirão de fim de semana',n:'Resolve a fila mais visível agora, para todo mundo, e custa parte do orçamento deste ano.',d:'R$ 60 mi a menos no espaço deste ano; 3.250 anos de vida saudável agora, distribuídos por igual.',budget:-60,gainQ:[650,650,650,650,650],
              jornal:'Em três sábados de mutirão, o hospital central operou centenas de hérnias e vesículas. A fila mais visível encolheu, e a equipe pediu folga.'},
-            {t:'Reordenar a fila por critério clínico',d:'Sem custo. Quem está pior passa na frente: 1.200 anos, sobretudo para quem tem menos. Mas quem perdeu o lugar tinha contato na câmara: R$ 40 mi a menos na margem do ano que vem.',n:'Não custa nada e atende primeiro quem está pior, que em geral tem menos. Desagrada quem perdeu o lugar.',gainQ:[430,340,220,130,80],penalty:40,why:'a reordenação da fila do ano passado desagradou quem tinha contatos.',
+            {t:'Reordenar a fila por critério clínico',d:'Sem custo. Quem está pior passa na frente: 1.200 anos, sobretudo para quem tem menos. Mas quem perdeu o lugar tinha contato na câmara: R$ 40 mi a menos na margem do ano que vem.',n:'Não custa nada e atende primeiro quem está pior, que em geral tem menos. Desagrada quem perdeu o lugar.',gainQ:[520,360,190,90,40],penalty:40,why:'a reordenação da fila do ano passado desagradou quem tinha contatos.',
              jornal:'A nova fila põe na frente quem está pior. Quem perdeu o lugar reclamou na Câmara; quem esperava com dor agradeceu.'},
             {t:'Esperar a notícia passar',n:'Nada muda, e a notícia continua.',d:'Nada muda. A manchete do fim do ano vai lembrar.',note:'A fila continuou nas páginas por meses.',
              jornal:'A lista seguiu publicada, com nomes e tempos de espera, e ganhou atualização mensal por iniciativa deste jornal.'}]},
-    {id:'doacao',nm:'O equipamento de presente',txt:'Um fabricante oferece de graça um aparelho de última geração para o hospital central. O contrato prevê insumos exclusivos por três anos.',
-      opts:[{t:'Aceitar a doação',n:'Ganho imediato para quem chega ao hospital central; os insumos pesam no orçamento por três anos.',d:'1.500 anos de vida saudável agora, concentrados em quem chega ao hospital central. Insumos: R$ 40 mi por ano durante 3 anos, como compromisso.',gainQ:[120,180,300,420,480],recurring:{amt:40,years:3,nm:'insumos do equipamento doado'},
-             jornal:'O aparelho chegou ao hospital central com fita e discurso. Os insumos exclusivos também chegaram, e o contrato vale por três anos.'},
+    {id:'doacao',nm:'O equipamento de presente',txt:'Um fabricante oferece de graça um aparelho de última geração para o hospital central. O contrato prevê insumos exclusivos por três anos e uma equipe dedicada, que sairia das unidades da periferia.',
+      opts:[{t:'Aceitar a doação',n:'Ganho grande para quem chega ao hospital central; a periferia perde parte da equipe, e os insumos pesam por três anos.',d:'3.000 anos de vida saudável agora, quase todos para quem chega ao hospital central. A equipe dedicada sai das unidades da periferia: 1.200 anos perdidos, quase todos entre os mais pobres. Insumos: R$ 15 mi por ano durante 3 anos, como compromisso.',gainQ:[150,300,600,900,1050],lossQ:[800,300,100,0,0],recurring:{amt:15,years:3,nm:'insumos do equipamento doado'},
+             jornal:'O aparelho chegou ao hospital central com fita e discurso. Para operá-lo, dois técnicos e uma enfermeira deixaram a unidade do Jardim Esperança.'},
             {t:'Recusar',n:'Nada muda.',d:'Nada muda. O fabricante leva a oferta para a cidade vizinha.',
              jornal:'A cidade vizinha inaugurou o aparelho com festa. A secretaria diz que "presente com contrato não é presente".'}]},
     {id:'emenda',nm:'A emenda carimbada',txt:'Um deputado oferece R$ 150 milhões de emenda parlamentar, carimbados: só podem construir uma unidade de pronto-atendimento, e no bairro de classe alta onde ele tem votos. A emenda paga a obra; quem paga o funcionamento, todo ano, é a secretaria.',
-      opts:[{t:'Aceitar a emenda',d:'1.200 anos de vida saudável, quase todos para quem tem mais, sem gastar o seu orçamento na obra. Custeio de R$ 12 mi por ano até o fim do mandato.',n:'Dinheiro de fora, saúde para quem já tem mais, e uma conta de custeio que fica com você.',gainQ:[60,120,240,360,420],recurring:{amt:12,years:99,nm:'UPA da emenda'},
-             jornal:'A UPA vai ficar no bairro do deputado. A obra é da emenda; o funcionamento, da secretaria, até o fim do mandato.'},
-            {t:'Negociar o endereço',d:'Propor a UPA num bairro da periferia. O deputado pode topar (1.800 anos, sobretudo para quem tem menos, custeio de R$ 12 mi por ano) ou se ofender e fazer campanha contra: R$ 60 mi a menos na margem do ano que vem.',n:'Pode render uma unidade onde faz falta, ou irritar o deputado.',negotiate:{gainQ:[900,480,240,120,60],amt:12,penalty:60},
+      opts:[{t:'Aceitar a emenda',d:'A UPA abre no ano que vem, sem gastar o seu orçamento na obra, e rende 450 anos de vida saudável por ano, quase todos para quem tem mais. Custeio de R$ 12 mi por ano até o fim do mandato.',n:'Dinheiro de fora, saúde todo ano para quem já tem mais, e uma conta de custeio que fica com você.',gainYear:[25,45,90,135,155],recurring:{amt:12,years:99,nm:'UPA da emenda'},
+             jornal:'A UPA vai ficar no bairro do deputado e abre no ano que vem. A obra é da emenda; o funcionamento, da secretaria, até o fim do mandato.'},
+            {t:'Negociar o endereço',d:'Propor a UPA num bairro da periferia. O deputado pode topar (a UPA abre no ano que vem e rende 400 anos de vida saudável por ano, sobretudo para quem tem menos, com custeio de R$ 12 mi por ano) ou se ofender e fazer campanha contra: R$ 40 mi a menos na margem do ano que vem.',n:'Pode render uma unidade onde faz falta, ou irritar o deputado.',negotiate:{gainYear:[200,107,53,27,13],amt:12,penalty:40},
              jornal:{ok:'Na periferia, a associação de moradores soltou fogos com o anúncio.',no:'Na Câmara, o deputado chamou a contraproposta de "desfeita" e prometeu oposição à secretaria.'}},
             {t:'Recusar',d:'A emenda vai para outra pasta. Nada muda na saúde.',n:'Nada muda na saúde.',
              jornal:'A emenda foi para outra pasta. O deputado disse que a saúde "não sabe aproveitar oportunidades".'}]},
-    {id:'avaliacao',nm:'A equipe de avaliação',txt:'Uma universidade propõe montar uma equipe de avaliação de tecnologias na secretaria. Custa R$ 15 milhões, uma vez.',
-      opts:[{t:'Contratar a equipe',n:'Custa um pouco agora; a partir deste ano, você passa a saber quanto as propostas duvidosas rendem de verdade.',d:'Já neste ano, as propostas de evidência moderada ou fraca chegam à mesa com uma estimativa local de quanto vão render de fato.',budget:-15,evalOn:true,
+    {id:'avaliacao',nm:'A equipe de avaliação',txt:'Uma universidade propõe montar uma equipe de avaliação de tecnologias na secretaria. Custa R$ 10 milhões, uma vez: o mesmo que um mutirão de busca ativa de hipertensos na periferia.',
+      opts:[{t:'Contratar a equipe',n:'Custa um pouco agora; a partir deste ano, você passa a saber quanto as propostas duvidosas rendem de verdade.',d:'R$ 10 mi a menos no espaço deste ano. Já neste ano, as propostas de evidência moderada ou fraca chegam à mesa com uma estimativa local de quanto vão render de fato.',budget:-10,evalOn:true,
              jornal:'A universidade montou a equipe na secretaria. A primeira tarefa: conferir se as propostas na mesa entregam o que prometem.'},
-            {t:'Dispensar',n:'Continua apostando no que o proponente promete.',d:'As propostas continuam chegando só com a promessa do fabricante ou do proponente.',
+            {t:'Usar o dinheiro em busca ativa',n:'Saúde agora para quem tem menos; as propostas continuam chegando só com a promessa de quem as vende.',d:'R$ 10 mi a menos no espaço deste ano; 225 anos de vida saudável agora, quase todos para os mais pobres. As propostas continuam chegando só com a promessa do fabricante ou do proponente.',budget:-10,gainQ:[118,62,28,12,5],
+             jornal:'Equipes de busca ativa bateram em 6 mil portas da periferia e encontraram 900 hipertensos sem tratamento. A equipe de avaliação fica para outra hora.'},
+            {t:'Dispensar',n:'Continua apostando no que o proponente promete.',d:'Nada muda: o dinheiro fica no orçamento, e as propostas continuam chegando só com a promessa do fabricante ou do proponente.',
              jornal:'As propostas continuam chegando com a palavra de quem as vende. A universidade diz que a oferta continua de pé.'}]},
     {id:'enchente',nm:'Enchente nas áreas de ocupação',txt:'Chuvas de verão alagaram os bairros mais pobres. Há risco de leptospirose, diarreia e perda de medicação crônica.',
-      opts:[{t:'Resposta de emergência (R$ 80 mi)',n:'Custa parte do orçamento deste ano; ninguém adoece a mais.',d:'Abrigos, equipes volantes e reposição de medicamentos. Ninguém adoece a mais. R$ 80 mi a menos no espaço deste ano.',budget:-80,
+      opts:[{t:'Resposta de emergência (R$ 90 mi)',n:'Custa parte do orçamento deste ano; ninguém adoece a mais.',d:'Abrigos, equipes volantes e reposição de medicamentos. Ninguém adoece a mais. R$ 90 mi a menos no espaço deste ano.',budget:-90,
              jornal:'Abrigos, equipes volantes e reposição de remédios chegaram em 48 horas. Ninguém adoeceu a mais, e a conta saiu deste ano.'},
-            {t:'Esperar a ajuda federal',n:'Sem custo agora; os bairros alagados pagam em saúde.',d:'Ela chega, mas tarde: 2.500 anos de vida saudável perdidos, quase todos entre os mais pobres.',lossQ:[1400,700,250,100,50],
+            {t:'Esperar a ajuda federal',n:'Sem custo agora; os bairros alagados pagam em saúde.',d:'Ela chega, mas tarde: 2.200 anos de vida saudável perdidos, quase todos entre os mais pobres.',lossQ:[1500,500,150,40,10],
              jornal:'A ajuda federal chegou três semanas depois. Nesse meio-tempo, casos de leptospirose e de diarreia lotaram as unidades das áreas alagadas.'}]},
-    {id:'reajuste',nm:'O reajuste da atenção básica',txt:'Agentes comunitários e equipes das unidades básicas pedem reajuste. Sem ele, ameaçam reduzir as visitas domiciliares.',
-      opts:[{t:'Conceder o reajuste',n:'Custa todo ano até o fim; a rotina para de perder terreno tão rápido.',d:'R$ 30 mi por ano até o fim do mandato. A rotina para de perder terreno tão rápido: a erosão anual cai pela metade.',recurring:{amt:30,years:99,nm:'reajuste da atenção básica'},erosion:0.5,
-             jornal:'Agentes comunitários e equipes das unidades básicas comemoraram. As visitas domiciliares, que vinham caindo, voltaram ao ritmo.'},
-            {t:'Negar',n:'Sem custo, mas as equipes reduzem as visitas por um tempo.',d:'Sem custo. Mas as equipes reduzem as visitas: a erosão da rotina aumenta 30% nos próximos dois anos.',erosionTemp:{f:1.3,years:2},
-             jornal:'Sem reajuste, as equipes reduziram as visitas domiciliares por tempo indeterminado. "A gente vai onde dá", diz uma agente comunitária.'}]}
+    {id:'reajuste',nm:'O reajuste da atenção básica',txt:'Agentes comunitários e equipes das unidades básicas pedem reajuste. Sem ele, ameaçam reduzir as visitas domiciliares, que chegam sobretudo aos bairros mais pobres.',
+      opts:[{t:'Conceder o reajuste',n:'Custa todo ano, já a partir deste, até o fim; as visitas aos bairros mais pobres aumentam.',d:'R$ 18 mi por ano, já a partir deste, até o fim do mandato. Com as equipes completas, as visitas aumentam: 340 anos de vida saudável a mais por ano, quase todos nos bairros mais pobres.',budget:-18,gainQ:[230,90,20,0,0],recurring:{amt:18,years:99,nm:'reajuste da atenção básica'},gainYear:[230,90,20,0,0],
+             jornal:'Agentes comunitários e equipes das unidades básicas comemoraram. As visitas domiciliares voltaram a crescer nos bairros mais pobres.'},
+            {t:'Negar',n:'Sem custo, mas as equipes reduzem as visitas por um tempo.',d:'Sem custo. Mas as equipes reduzem as visitas: a erosão da rotina aumenta 10% neste ano.',erosionTemp:{f:1.1,years:1},
+             jornal:'Sem reajuste, as equipes reduziram as visitas domiciliares neste ano. "A gente vai onde dá", diz uma agente comunitária.'}]}
   ];
   // fração do ganho prometido que de fato aparece, sorteada uniformemente na faixa da força da evidência
   const EVSPREAD={forte:[0.9,1.1],moderada:[0.7,1.2],fraca:[0.3,1.3]};
@@ -1329,6 +1332,8 @@ html{scroll-padding-top:4rem}
   }
   function addDue(yr,mun,fed,nm){const d=G.due[yr]||(G.due[yr]={mun:0,fed:0,items:[]});d.mun+=mun;d.fed+=fed;d.items.push({nm,mun,fed});}
   const addRecurring=(amt,y0,y1,nm)=>{for(let y=y0;y<=y1;y++)addDue(y,amt,0,nm);};
+  // ganho por ano de um dilema (gainYear), do ano seguinte até o fim do mandato
+  function addYearly(q){for(let y=G.year+1;y<=cfg.years;y++){if(!G.pending[y])G.pending[y]=Array(N).fill(0);for(let i=0;i<N;i++)G.pending[y][i]+=q[i];}}
   // compromissos do ano: custeio dos programas em funcionamento (menos os de skip) e as contas que vêm de dilemas e
   // da ordem judicial; mun é o que a cidade paga, fed o que a União paga
   function commitments(skip){
@@ -1512,7 +1517,7 @@ html{scroll-padding-top:4rem}
       else if(!G.closed){step=7;txt='Está pronto. O que sobrar do espaço não tira saúde de ninguém. <b>Feche o ano.</b>';}
       else{step=8;txt='Leia a manchete e os dois jurados. O <b>Contador</b> só credita o que já apareceu, e o custo saiu todo agora: por isso ele costuma reprovar o primeiro ano. A vacinação rende ao longo de 3 anos, então parte do ganho ficou plantada (veja o tile <b>Legado</b>, ao lado). A <b>Ouvidora</b> pesa cada ano de vida pela saúde de quem o recebe. Agora vá para 2028, e repare no que o custeio faz com o espaço.';}
     }else{
-      if(!G.dilemmaDone){step=9;txt='Antes do orçamento, um <b>dilema</b>. Pense no que cada opção faz agora e depois, e com quem: às vezes uma agrada os dois jurados, às vezes eles discordam. Este aqui é sobre evidência: quanto vale saber se uma proposta vai mesmo render o que promete. Leia e escolha.';}
+      if(!G.dilemmaDone){step=9;txt='Antes do orçamento, um <b>dilema</b>. Pense no que cada opção faz agora e depois, e com quem: muitas vezes, a que agrada um jurado desagrada o outro. Este aqui põe a informação contra a ação: pagar para saber quanto as propostas duvidosas rendem de fato, ou usar o mesmo dinheiro agora, na periferia. Leia e escolha.';}
       else if(!A.has('y2')){step=10;txt='Repare no dinheiro do ano: o custeio do que você aprovou em 2027 voltou como <b>compromisso</b>, e a União já paga uma parte. O espaço encolheu, e encolhe a cada programa aprovado. <b>Hipertensão e diabetes</b> rende ao longo de 4 anos: quase nada agora, muito depois. <b>Hospital-dia</b> rende agora. <b>Transporte sanitário</b> é pequeno, mas quase todo o ganho vai para quem tem menos. Se um programa render pouco, você pode encerrá-lo na lista dos compromissos. Daqui em diante, é com você.';btn=['y2','Entendi, é comigo'];}
       else return '';
     }
@@ -1601,10 +1606,11 @@ html{scroll-padding-top:4rem}
     if(o.lossQ){for(let i=0;i<N;i++)G.cum[i]-=o.lossQ[i];}
     if(o.penalty)G.pens.push({amt:o.penalty,why:o.why});
     if(o.recurring)addRecurring(o.recurring.amt,G.year+1,Math.min(cfg.years,G.year+o.recurring.years),o.recurring.nm);
+    if(o.gainYear)addYearly(o.gainYear);
     if(o.evalOn)G.evalOn=true;
     if(o.erosion)G.erosionF=o.erosion;
     if(o.erosionTemp)G.erosionTemp={f:o.erosionTemp.f,until:G.year+o.erosionTemp.years-1};
-    if(o.negotiate){const ng=o.negotiate;if(G.r()<0.5){for(let i=0;i<N;i++)G.cum[i]+=ng.gainQ[i];addRecurring(ng.amt,G.year+1,cfg.years,'UPA negociada');G.negTxt='O deputado topou: a UPA vai para a periferia.';G.negOk=true;}else{G.negOk=false;G.pens.push({amt:ng.penalty,why:'o deputado não gostou da contraproposta da UPA e fez campanha contra a secretaria.'});G.negTxt='O deputado se ofendeu e levou a emenda embora.';}}
+    if(o.negotiate){const ng=o.negotiate;if(G.r()<0.5){if(ng.gainQ)for(let i=0;i<N;i++)G.cum[i]+=ng.gainQ[i];if(ng.gainYear)addYearly(ng.gainYear);addRecurring(ng.amt,G.year+1,cfg.years,'UPA negociada');G.negTxt='O deputado topou: a UPA vai para a periferia.';G.negOk=true;}else{G.negOk=false;G.pens.push({amt:ng.penalty,why:'o deputado não gostou da contraproposta da UPA e fez campanha contra a secretaria.'});G.negTxt='O deputado se ofendeu e levou a emenda embora.';}}
     G.dilemmaNote=o.note||'';G.dilemmaPick={nm:D.nm,opt:o.t+(G.negTxt?' ('+G.negTxt+')':'')};
     computeRoom();
     renderYear();renderPop();toTurn($('gameLeft').querySelector('.yr .y'));

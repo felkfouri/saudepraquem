@@ -60,7 +60,7 @@ nextYear()        próximo ano, ou renderFinal() no último
 
 **Espaço para programas novos** = transferência + margem + `EXTRA` − compromissos − ordem judicial − dilema, com mínimo zero. As cartas marcadas precisam caber nele: se passarem, "Fechar o ano" fica desabilitado até o jogador desmarcar algo ou encerrar um programa. Compromissos, ordem judicial e dilema são pagos sempre, mesmo que passem do limite (o painel avisa quando isso acontece), então nenhuma partida trava.
 
-A margem é o quanto a receita da saúde cresce no ano. Sem programa novo, ela reforçaria a rede; gasta em outra coisa, desloca saúde como qualquer gasto (ver [3](#3-para-pagar-o-que-deixa-de-ser-feito-exits)). Os cortes vindos de dilemas (reordenar a fila: R$ 40 mi; emenda negociada que dá errado: R$ 60 mi) saem da margem do ano seguinte, com piso zero, e o aviso lista cada motivo (`G.pens`).
+A margem é o quanto a receita da saúde cresce no ano. Sem programa novo, ela reforçaria a rede; gasta em outra coisa, desloca saúde como qualquer gasto (ver [3](#3-para-pagar-o-que-deixa-de-ser-feito-exits)). Os cortes vindos de dilemas (reordenar a fila e emenda negociada que dá errado: R$ 40 mi cada) saem da margem do ano seguinte, com piso zero, e o aviso lista cada motivo (`G.pens`).
 
 ### 2. As cartas e a ficha de cada uma
 
@@ -144,7 +144,7 @@ Nesta ordem:
 9. somam-se às perdas a erosão da rotina, as perdas adiadas que vencem agora e o dano da epidemia;
 10. o saldo do ano (ganhos − perdas) é somado em `G.cum`, e a saúde de cada grupo passa a ser $h_i + \text{cum}_i / P$.
 
-- **Erosão** (`CITIES[*].erosion`): o que a rotina perde todo ano sem reforço, com programas ou sem. O reajuste da atenção básica reduz pela metade de forma permanente; negá-lo aumenta 30% por dois anos.
+- **Erosão** (`CITIES[*].erosion`): o que a rotina perde todo ano sem reforço, com programas ou sem. Negar o reajuste da atenção básica aumenta a erosão em 10% naquele ano.
 - **Epidemia de dengue**: o dano cai pela metade se um programa com a tag `vig` funciona desde um ano anterior.
 
 ### 5. Os três jurados
@@ -156,6 +156,21 @@ Nesta ordem:
 | **Legado** | QALYs já plantados que ainda vão aparecer, menos as perdas adiadas que ainda vão vencer | `popStats().legacy` |
 
 A cada ano, o Contador comenta o saldo do ano, e a Ouvidora, o saldo ponderado, explicado pela variação da distância entre os mais pobres e os mais ricos (em dias de vida saudável por pessoa).
+
+### 6. Os dilemas
+
+Cada dilema foi calibrado para não ter resposta dominante: em geral, a opção que o Contador prefere não é a que a Ouvidora prefere. `tests/dilemas.js` mede isso (ver o [README](../README.md#equilíbrio-dos-dilemas)). Em partidas de 10 anos:
+
+| Dilema | Costuma agradar o Contador | Costuma agradar a Ouvidora | Sem resposta dominante |
+|---|---|---|---:|
+| A fila na primeira página | mutirão de fim de semana | reordenar a fila por critério clínico | 46% |
+| O equipamento de presente | aceitar a doação | recusar | 71% |
+| A emenda carimbada | aceitar a emenda | negociar o endereço, ou recusar | 50% |
+| A equipe de avaliação | dispensar | usar o dinheiro em busca ativa | 72% |
+| Enchente nas áreas de ocupação | esperar a ajuda federal | resposta de emergência | 46% |
+| O reajuste da atenção básica | negar | conceder | 43% |
+
+Nos outros casos, uma opção vence nos dois jurados, e qual delas depende da partida: do ano em que o dilema aparece, da cidade, do aperto do orçamento e de como se joga. Contratar a equipe de avaliação, por exemplo, vence nos dois em 11% dos casos, quando a estimativa muda uma decisão importante.
 
 ## Fim de mandato (`renderFinal`)
 
@@ -221,7 +236,7 @@ Acrescente uma chave em `ADDON` com `t`, `d`, `cost`, `gain` e `mix:[w, POOR|RIC
 
 ### Novo dilema
 
-Acrescente a `DILEMMAS` um objeto `{id, nm, txt, opts:[…]}`. Cada opção precisa de `t`, `d` e `n`; os efeitos possíveis estão listados no comentário acima de `DILEMMAS` e aplicados em `applyDilemma`. Um `budget` negativo entra na conta do ano e desloca saúde; um `recurring` vira compromisso dos anos seguintes. O `id` `'avaliacao'` é reservado para o ano 2 do tutorial.
+Acrescente a `DILEMMAS` um objeto `{id, nm, txt, opts:[…]}`. Cada opção precisa de `t`, `d` e `n` (e, de preferência, `jornal`); os efeitos possíveis estão listados no comentário acima de `DILEMMAS` e aplicados em `applyDilemma`. Um `budget` negativo entra na conta do ano e desloca saúde; um `recurring` vira compromisso dos anos seguintes; um `gainYear` é um ganho por ano, do ano seguinte até o fim do mandato. Um corte na margem do ano seguinte (`penalty`) só pesa se a conta passar da margem, então costuma custar menos que o mesmo valor em `budget`. Depois de criar ou mudar um dilema, rode `tests/dilemas.js` para ver se alguma opção ficou dominante. Um efeito novo precisa entrar também em `tests/motor.js`. O `id` `'avaliacao'` é reservado para o ano 2 do tutorial.
 
 ### Novo evento
 

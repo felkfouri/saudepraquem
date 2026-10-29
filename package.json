@@ -6,7 +6,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node tests/validar.js"
+    "test": "node tests/validar.js",
+    "dilemas": "node tests/dilemas.js"
   },
   "devDependencies": {
     "playwright": "^1.63.0"

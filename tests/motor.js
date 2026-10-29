@@ -95,6 +95,8 @@ function cardPlan(c,on){
 function progYearCost(p,y){if(p.pontual||p.closedAt&&p.closedAt<=y||y<=p.start)return null;const fed=p.cus*p.h;return {mun:p.cus-fed,fed};}
 function addDue(G,yr,mun,fed,nm){const d=G.due[yr]||(G.due[yr]={mun:0,fed:0,items:[]});d.mun+=mun;d.fed+=fed;d.items.push({nm,mun,fed});}
 const addRecurring=(G,amt,y0,y1,nm)=>{for(let y=y0;y<=y1;y++)addDue(G,y,amt,0,nm);};
+// ganho por ano de um dilema (gainYear), do ano seguinte até o fim do mandato
+function addYearly(G,q){for(let y=G.year+1;y<=G.cfg.years;y++){if(!G.pending[y])G.pending[y]=zeros();for(let i=0;i<N;i++)G.pending[y][i]+=q[i];}}
 function commitments(G,skip){
   let mun=0,fed=0;const items=[];
   for(const p of G.progs){if(skip&&skip.has(p.id))continue;const c=progYearCost(p,G.year);if(!c)continue;mun+=c.mun;fed+=c.fed;items.push({id:p.id,nm:p.nm,mun:c.mun,fed:c.fed});}
@@ -133,10 +135,11 @@ function applyDilemma(G,k){
   if(o.lossQ){for(let i=0;i<N;i++)G.cum[i]-=o.lossQ[i];}
   if(o.penalty)G.pens.push({amt:o.penalty,why:o.why});
   if(o.recurring)addRecurring(G,o.recurring.amt,G.year+1,Math.min(G.cfg.years,G.year+o.recurring.years),o.recurring.nm);
+  if(o.gainYear)addYearly(G,o.gainYear);
   if(o.evalOn)G.evalOn=true;
   if(o.erosion)G.erosionF=o.erosion;
   if(o.erosionTemp)G.erosionTemp={f:o.erosionTemp.f,until:G.year+o.erosionTemp.years-1};
-  if(o.negotiate){const ng=o.negotiate;if(G.r()<0.5){for(let i=0;i<N;i++)G.cum[i]+=ng.gainQ[i];addRecurring(G,ng.amt,G.year+1,G.cfg.years,'UPA negociada');}
+  if(o.negotiate){const ng=o.negotiate;if(G.r()<0.5){if(ng.gainQ)for(let i=0;i<N;i++)G.cum[i]+=ng.gainQ[i];if(ng.gainYear)addYearly(G,ng.gainYear);addRecurring(G,ng.amt,G.year+1,G.cfg.years,'UPA negociada');}
     else G.pens.push({amt:ng.penalty,why:'emenda negociada'});}
   computeRoom(G);
 }
