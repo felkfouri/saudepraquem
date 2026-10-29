@@ -47,13 +47,15 @@ Partindo de R$ 600 milhões (`BASE_BUDGET`):
 1. o evento do ano pode transformá-lo (crise fiscal: ×0,65; transferência federal: +300);
 2. penalidades do ano anterior são descontadas, com piso de R$ 150 mi;
 3. custeios recorrentes (infraestrutura, insumos, reajuste, UPA) são descontados, com piso de R$ 100 mi;
-4. o dilema, se houver, pode somar ou tirar dinheiro na hora (piso de R$ 50 mi).
+4. o dilema, se houver, pode somar ou tirar dinheiro na hora (piso de R$ 50 mi). O que ele tira conta como gasto do ano (`G.dilSpent`) e desloca saúde no fechamento, como o gasto em propostas.
+
+Na transferência federal, R$ 300 mi do orçamento são carimbados (`earmark`): só pagam cartas com a tag `aps`. O gasto nas demais cartas (e na carta judicializada) precisa caber no restante. O que sobra da parte carimbada volta para o ministério.
 
 Dinheiro não gasto volta para a rotina sem perda, mas gastar menos da metade do orçamento dois anos seguidos faz a prefeitura cortar R$ 120 mi no ano seguinte.
 
 ### 2. As cartas
 
-Saem quatro cartas do baralho (`DECK`). O evento "Pressão da indústria" acrescenta uma quinta e a "Judicialização" impõe uma carta paga obrigatoriamente. Quando restam menos de cinco cartas, o baralho é refeito com todas as propostas, menos as que estiveram na mesa no ano anterior.
+Saem quatro cartas do baralho (`DECK`). O evento "Pressão da indústria" acrescenta uma quinta e a "Judicialização" impõe uma carta paga obrigatoriamente. Quando restam menos de cinco cartas, o baralho é refeito com todas as propostas, menos as que estiveram na mesa no ano anterior. As que já foram financiadas voltam como **segunda rodada** (`rep`), com ganho prometido de 60% do original (`REPEAT`): o público mais fácil de alcançar já foi atendido.
 
 Para cada carta, sorteia-se já na abertura do ano a fração do ganho prometido que vai de fato aparecer, uniforme na faixa da força da evidência (`EVSPREAD`):
 
@@ -63,7 +65,7 @@ Para cada carta, sorteia-se já na abertura do ano a fração do ganho prometido
 | moderada | 70% a 120% |
 | fraca | 30% a 130% |
 
-Com a equipe de avaliação contratada (ou no modo fácil), as cartas de evidência moderada ou fraca mostram esse valor antes da escolha.
+Com a equipe de avaliação contratada (ou no modo fácil), as cartas de evidência moderada ou fraca mostram uma faixa de 25 pontos percentuais que contém esse valor (`evalRange`), dentro da faixa da evidência. A posição da faixa é derivada do próprio valor sorteado, sem novo sorteio.
 
 **Complementos** (`ADDON`): ao marcar uma carta que tem o campo `addon`, aparece uma escolha extra sobre como fazer. O complemento multiplica custo e ganho e mistura a distribuição original com um perfil de referência (`POOR` ou `RICH`):
 
@@ -82,7 +84,7 @@ $$s'_i = (1-w)\cdot 100\cdot\frac{s_i}{\sum_j s_j} + w \cdot \text{ref}_i$$
 | Fonte | Quem perde a saúde deslocada | Efeito colateral |
 |---|---|---|
 | Rotina da atenção básica (padrão) | perfil `srcAb` da cidade, pesado sobre os mais pobres | nenhum |
-| Hospitais e exames | 20% para cada grupo | nenhum |
+| Hospitais e exames | 20% para cada grupo | desloca 20% mais saúde por real (`HOSP_F`): a espera agrava os casos |
 | Outras pastas da prefeitura | 10/15/20/25/30, mais sobre os ricos | R$ 120 mi a menos no ano seguinte |
 
 No ano da greve, o custo de oportunidade recai 40/30/15/10/5, qualquer que seja a fonte.
@@ -96,8 +98,10 @@ Para cada programa financiado:
 
 Depois, para o ano todo:
 
-$$\text{perda}_i = \frac{\text{gasto} \times 10^6}{40\,000}\cdot\frac{o_i}{100} + \text{erosão}_i \cdot f_\text{erosão} \;(+\; \text{dano da epidemia}_i)$$
+$$\text{perda}_i = \frac{(\text{gasto} + \text{gasto do dilema}) \times 10^6}{40\,000}\cdot f_\text{fonte}\cdot\frac{o_i}{100} + \text{erosão}_i \cdot f_\text{erosão} \;(+\; \text{dano da epidemia}_i)$$
 
+- $f_\text{fonte}$ é 1,2 para os hospitais e 1 nas demais fontes e no ano da greve.
+- **Custeios recorrentes** (infraestrutura, insumos, UPA, reajuste) só reduzem o orçamento dos anos seguintes; não deslocam saúde por conta própria.
 - **Erosão** (`CITIES[*].erosion`): o que a rotina perde todo ano sem reforço, com programas ou sem. O reajuste da atenção básica reduz pela metade de forma permanente; negá-lo aumenta 30% por dois anos.
 - **Epidemia de dengue**: o dano cai pela metade se algum programa com a tag `vig` foi financiado em ano anterior.
 
