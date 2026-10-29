@@ -33,6 +33,9 @@ Produto técnico da disciplina de Análise Econômica em Saúde, programa de pó
 index.html      guia + laboratório + teste + jogo (HTML, CSS e JS em um arquivo)
 docs/modelo.md  as fórmulas: custo de oportunidade, EDE de Atkinson, saldo ponderado, conversão do teste em ε
 docs/jogo.md    regras do jogo, campos dos dados e como acrescentar propostas, dilemas, eventos e cidades
+tests/motor.js    motor de referência do jogo, sem navegador: as regras escritas à parte, com os dados lidos do index.html
+tests/validar.js  joga partidas na página (Playwright) e no motor, com as mesmas decisões, e compara
+package.json    dependência de desenvolvimento (Playwright) e o comando npm test
 README.md
 ```
 
@@ -56,7 +59,42 @@ Alguns comportamentos gerais:
 
 ## Como verificar uma mudança
 
-Não há testes automatizados. Antes de publicar:
+### Validação automática do jogo
+
+`tests/validar.js` abre a página num Chromium sem janela e faz duas coisas:
+
+1. **Paridade com o motor de referência.** Joga cada partida na página, clicando nos elementos reais, e em `tests/motor.js`, com as mesmas decisões, tomadas por quatro políticas (só abaixo do limiar; equidade com rodízio de cortes e encerramentos; gasta tudo; encerra um programa por ano). Por padrão são 4 códigos × 3 cidades, em 10 anos, e partidas de 5 anos com tutorial. Ano a ano, compara dilema, cartas na mesa, apoio político, opções de corte ao alcance, compromissos, espaço para programas novos e os quatro placares; no fim, título, notas, herança e custo exportado.
+2. **Cliques ao acaso.** Partidas com escolhas sorteadas, em todas as durações, cidades e dificuldades, para achar erro de JavaScript ou ano que não fecha.
+
+Precisa de Node 20 ou mais novo. Na primeira vez:
+
+```bash
+npm install
+```
+
+```bash
+npx playwright install chromium
+```
+
+Depois, a cada mudança:
+
+```bash
+npm test
+```
+
+ou, para escolher o tamanho (número de códigos e de partidas ao acaso):
+
+```bash
+node tests/validar.js 6 60
+```
+
+Leva cerca de 3 segundos por partida e termina com código 0 se tudo bater; cada diferença aparece com o ano e os dois valores.
+
+O motor lê do `index.html` os dados do jogo (cidades, propostas, dilemas, eventos, opções de corte, dinheiro do ano e réguas), então mudar um número ou acrescentar uma proposta não exige mexer nele. As regras, ao contrário, estão escritas duas vezes, de propósito: se uma regra mudar na página (a ordem de pagamento da conta, o apoio político, os títulos, as cartas do tutorial), mude também `tests/motor.js`, senão a validação acusa a diferença. Uma mudança que acrescente, tire ou reordene sorteios precisa ser feita nos dois lugares.
+
+### Verificação à mão
+
+Antes de publicar:
 
 1. Abra a página com o console do navegador aberto e confira que não há erros.
 2. **Laboratório:** clique nos cinco cenários e mova o ε de 0 a 20. Os valores do cenário "Rastreamento por carta" estão calculados à mão em [`docs/modelo.md`](docs/modelo.md#7-exemplo-rastreamento-por-carta) (saldo +3.000, ICER R$ 25.000, saldo ponderado +1.717 com ε = 11).

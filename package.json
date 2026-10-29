@@ -1,0 +1,14 @@
+{
+  "name": "saude-para-quem",
+  "private": true,
+  "description": "Guia interativo de análise de custo-efetividade distributiva (DCEA) e o jogo Cobertor Curto",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node tests/validar.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}
