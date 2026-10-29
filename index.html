@@ -690,7 +690,7 @@ html{scroll-padding-top:4rem}
           <div class="field" style="margin-bottom:0">
             <label for="gSeed">Código da partida</label>
             <input type="number" id="gSeed" min="1" max="9999" step="1">
-            <p class="hint">Sorteado a cada partida. Duas pessoas com o mesmo código recebem as mesmas propostas, os mesmos eventos e as mesmas surpresas. Bom para comparar decisões em sala.</p>
+            <p class="hint">Sorteado a cada partida. Duas pessoas com o mesmo código, a mesma duração e a mesma escolha de tutorial recebem as mesmas propostas, os mesmos eventos e as mesmas surpresas. Bom para comparar decisões em sala.</p>
           </div>
         </div>
       </details>
@@ -1362,8 +1362,8 @@ html{scroll-padding-top:4rem}
       '<span class="meta">'+c.tipo+fed+(c.tipo==='infraestrutura'&&CITY.infra>1?' · nesta cidade rende '+Math.round((CITY.infra-1)*100)+'% a mais':'')+' · evidência <b>'+c.ev+'</b>'+(cfg.diff==='dificil'?'':' ('+(c.ev==='fraca'?'pode render de ':'')+Math.round(evLo*100)+'% a '+Math.round(evHi*100)+'%'+(c.ev==='fraca'?' do prometido':'')+')')+(G.evalOn&&!locked&&c.ev!=='forte'?' · <b>avaliação local estima ~'+Math.round(G.f[i]*100)+'% do prometido</b>':'')+again+'</span>'+
       (cfg.diff==='facil'&&!locked?'<span class="meta" style="color:var(--accent)"><b>Dica:</b> '+tip(c,sh,icer)+'</span>':'')+
       (locked||!G.chosen.has(i)||!ad?'':'<span class="meta act"><input type="checkbox" id="ac'+i+'" '+(G.active.has(i)?'checked':'')+(G.closed?' disabled':'')+'> <label for="ac'+i+'"><b>'+ad.t+'</b>: '+ad.d+'</label></span>')+
-      (c.src?'<details class="meta" style="grid-column:2"><summary style="font-size:.8rem;font-weight:600">fonte</summary><span style="font-style:italic">Inspirado em: '+c.src+'. Os números do card são ilustrativos.</span></details>':'')+
-      (cfg.diff==='dificil'?'':'<details class="meta" style="grid-column:2"><summary style="font-size:.8rem;font-weight:600">por grupo</summary>'+sh.map((v,k)=>QL[k].toLowerCase()+' '+fmt.format(Math.round(gain*v/tot))).join(' · ')+'</details>')+
+      (c.src?'<details class="meta" data-k="src'+i+'" style="grid-column:2"><summary style="font-size:.8rem;font-weight:600">fonte</summary><span style="font-style:italic">Inspirado em: '+c.src+'. Os números do card são ilustrativos.</span></details>':'')+
+      (cfg.diff==='dificil'?'':'<details class="meta" data-k="grp'+i+'" style="grid-column:2"><summary style="font-size:.8rem;font-weight:600">por grupo</summary>'+sh.map((v,k)=>QL[k].toLowerCase()+' '+fmt.format(Math.round(gain*v/tot))).join(' · ')+'</details>')+
       '</label>';
   }
   // a conta do ano: de onde vem o limite, o que já está comprometido (com a opção de encerrar) e o espaço que sobra
@@ -1418,7 +1418,7 @@ html{scroll-padding-top:4rem}
         return '<button class="chip" type="button" data-exit="'+k+'" aria-pressed="'+(G.exit===k)+'" aria-label="'+s.nm+(s.cap?', até R$ '+s.cap+' milhões':'')+(c?', custa '+c+(c>1?' pontos':' ponto')+' de apoio':', não custa apoio')+'"'+(G.closed||!exitOk(k)?' disabled':'')+'>'+s.nm+(s.cap?' · até R$ '+s.cap+' mi':'')+(c?' · '+dots(c):'')+'</button>';}).join('')+'</div>'+
       (debut.length?'<p class="hint"><b>Novo este ano:</b> '+debut.join(' e ')+'.</p>':'')+
       '<p class="hint">'+S.hint+'</p>'+
-      '<details class="hint"><summary>Quem decide?</summary>'+S.quem+'</details>'+
+      '<details class="hint" data-k="quem"><summary>Quem decide?</summary>'+S.quem+'</details>'+
       (isElection()?'<p class="hint">Ano de eleição: a fila e o prefeito custam 1 ponto a mais de apoio.</p>':'')+
       (G.exitNote?'<p class="hint">'+G.exitNote+'</p>':'')+
       compareHtml(Tm)+
@@ -1449,25 +1449,27 @@ html{scroll-padding-top:4rem}
         return '<div class="hood"><svg viewBox="0 0 96 86" role="img" aria-label="'+QL[q]+': '+sgn1(d)+' dias por pessoa">'+p+'</svg><span class="nm">'+QL[q]+'</span><span class="d" style="color:'+fill+'">'+sgn1(d)+' d</span></div>';}).join('')+'</div>';
   }
   const tut=()=>cfg.tutorial&&G.year<=2;
-  function coach(){
+  // at: 'top' (começo do painel) ou 'exits' (logo acima das opções de corte, para os passos 6 e 7)
+  function coach(at){
     if(!tut())return '';
     const y=G.year,A=G.tutAck;const idx=n=>G.hand.findIndex(c=>c.nm.startsWith(n));
     let step,txt,btn=null,total=10;
     if(y===1){
       const v=idx('Vacinação'),r=idx('Rastreamento');
-      if(!A.has('intro')){step=1;txt='Bem-vindo à sua mesa. Cada proposta tem dois preços: o que custa para começar, neste ano, e o <b>custeio</b> de todo ano enquanto funcionar. Na linha de baixo, quanto custa cada ano de vida ganho: abaixo do limiar de R$ 40 mil, a proposta rende mais do que a rede renderia com o mesmo dinheiro. Leia as quatro propostas e o dinheiro do ano, logo acima delas.';btn=['intro','Li as propostas'];}
+      if(!A.has('intro')){step=1;txt='Bem-vindo à sua mesa. Cada proposta tem dois preços: o que custa para começar, neste ano, e o <b>custeio</b> de todo ano enquanto funcionar. Na linha de baixo, quanto custa cada ano de vida ganho. O limiar de R$ 40 mil é quanto a rede gasta, em média, para produzir um ano de vida saudável: abaixo dele, a proposta tende a render mais do que o dinheiro renderia onde está. Quanto, ao certo, depende do que deixar de ser feito para pagá-la, a escolha que vem depois das propostas. Leia as quatro e o dinheiro do ano, logo acima delas.';btn=['intro','Li as propostas'];}
       else if(!G.chosen.has(v)){step=2;txt='Comece pela <b>vacinação na escola pública</b>: barata, evidência forte, e o ganho chega mais a quem tem menos. Marque a caixa dela.';}
       else if(!G.chosen.has(r)){step=3;txt='Agora o <b>rastreamento por carta</b>. Também está abaixo do limiar, mas repare nas barrinhas: o ganho pende para quem tem mais, porque quem lê a carta e vai ao exame é quem já tem mais. Marque-o mesmo assim.';}
-      else if(!G.active.has(r)){step=4;txt='Com ele marcado, apareceu a opção <b>busca ativa</b>: equipes vão atrás de quem não chega sozinho. Custa 25% a mais, também no custeio. Marque e abra o "por grupo" para ver a distribuição mudar.';}
+      else if(!G.active.has(r)){step=4;txt='Com ele marcado, apareceu a opção <b>busca ativa</b>: equipes vão atrás de quem não chega sozinho. Custa 25% a mais, também no custeio. Abra o "por grupo" do rastreamento e marque a busca ativa: a distribuição muda na hora.';}
       else if(!A.has('rob')){step=5;txt='O <b>centro de cirurgia robótica</b> está acima do limiar: cada real gasto ali rende menos do que renderia na rede. E nem cabe no espaço do ano. A campanha de mídia cabe, mas também não paga o que custa. Deixe as duas de fora.';btn=['rob','Entendi'];}
-      else if(!A.has('src')){step=6;txt='Falta decidir <b>o que deixa de ser feito</b> para pagar a conta do ano. Compare as linhas logo abaixo das opções: quanto de saúde cada uma tira e de quem. A <b>rotina das unidades básicas</b> é o padrão: ninguém protesta, mas é onde cada real rende mais saúde, e quem perde é quem só tem o SUS. A <b>fila</b> tira menos e pesa menos sobre os mais pobres, mas sai no jornal e gasta apoio político. Escolha uma; o jogo lembra a sua escolha no ano seguinte.';btn=['src','Fico com a rotina'];}
+      else if(!A.has('src')){step=6;txt='Falta decidir <b>o que deixa de ser feito</b> para pagar a conta do ano. Compare as linhas logo abaixo das opções: quanto de saúde cada uma tira e de quem. A <b>rotina das unidades básicas</b> é o padrão: ninguém protesta, mas é onde cada real rende mais saúde, e quem perde é quem só tem o SUS. A <b>fila</b> tira menos e pesa menos sobre os mais pobres, mas sai no jornal e gasta apoio político, que volta devagar: 1 ponto por ano. Escolha uma; o jogo lembra a sua escolha no ano seguinte.';btn=['src','Fico com a rotina'];}
       else if(!G.closed){step=7;txt='Está pronto. O que sobrar do espaço não tira saúde de ninguém. <b>Feche o ano.</b>';}
-      else{step=8;txt='Leia a manchete e os dois jurados. O <b>Contador</b> só credita o que já apareceu: a vacinação rende ao longo de 3 anos, então parte do ganho ficou plantada (veja o tile <b>Legado</b>, ao lado). A <b>Ouvidora</b> pesa cada ano de vida pela saúde de quem o recebe. Agora vá para 2028, e repare no que o custeio faz com o espaço.';}
+      else{step=8;txt='Leia a manchete e os dois jurados. O <b>Contador</b> só credita o que já apareceu, e o custo saiu todo agora: por isso ele costuma reprovar o primeiro ano. A vacinação rende ao longo de 3 anos, então parte do ganho ficou plantada (veja o tile <b>Legado</b>, ao lado). A <b>Ouvidora</b> pesa cada ano de vida pela saúde de quem o recebe. Agora vá para 2028, e repare no que o custeio faz com o espaço.';}
     }else{
-      if(!G.dilemmaDone){step=9;txt='Antes do orçamento, um <b>dilema</b>. Eles não têm resposta certa: cada opção agrada um jurado e desagrada outro, ou custa agora para render depois. Este aqui ensina algo importante sobre evidência. Leia e escolha.';}
+      if(!G.dilemmaDone){step=9;txt='Antes do orçamento, um <b>dilema</b>. Pense no que cada opção faz agora e depois, e com quem: às vezes uma agrada os dois jurados, às vezes eles discordam. Este aqui é sobre evidência: quanto vale saber se uma proposta vai mesmo render o que promete. Leia e escolha.';}
       else if(!A.has('y2')){step=10;txt='Repare no dinheiro do ano: o custeio do que você aprovou em 2027 voltou como <b>compromisso</b>, e a União já paga uma parte. O espaço encolheu, e encolhe a cada programa aprovado. <b>Hipertensão e diabetes</b> rende ao longo de 4 anos: quase nada agora, muito depois. <b>Hospital-dia</b> rende agora. <b>Transporte sanitário</b> é pequeno, mas quase todo o ganho vai para quem tem menos. Se um programa render pouco, você pode encerrá-lo na lista dos compromissos. Daqui em diante, é com você.';btn=['y2','Entendi, é comigo'];}
       else return '';
     }
+    if(at!==(step===6||step===7?'exits':'top'))return '';
     return '<div class="coach"><p class="eyebrow" style="margin:0 0 .3rem">Tutorial · passo '+step+' de '+total+'</p><p style="margin:0">'+txt+'</p>'+(btn?'<button class="btn ghost" type="button" id="tutAck" data-k="'+btn[0]+'" style="margin-top:.6rem">'+btn[1]+'</button>':'')+'</div>';
   }
   // re-render troca o painel inteiro: devolve o foco ao controle equivalente (ou ao tutorial, ou ao ano) para o teclado não voltar ao topo da página
@@ -1480,13 +1482,13 @@ html{scroll-padding-top:4rem}
     h+='<div class="yr"><h2 class="y">'+(Y0+G.year-1)+'</h2><span class="of">ano '+G.year+' de '+cfg.years+' · partida nº '+cfg.seed+' · '+CITY.nm+'</span></div>';
     if(!G.dilemmaDone){
       const D=G.dilemma;
-      h+=coach();
+      h+=coach('top');
       h+='<div class="event"><span class="ttl">Antes do orçamento</span><b class="hd">'+D.nm+'</b><p>'+D.txt+'</p></div><div class="qopt" style="grid-template-columns:1fr">'+D.opts.map((o,k)=>'<button class="qbtn" type="button" data-opt="'+k+'"><b style="font-family:var(--display)">'+o.t+'</b><br><span class="who">'+(cfg.diff==='dificil'?(o.n||o.d):o.d)+'</span></button>').join('')+'</div>';
       L.innerHTML=h;
       refocus(L,fk);
       return;
     }
-    h+=coach();
+    h+=coach('top');
     if(G.ev)h+='<div class="event'+(G.ev.good?' good':'')+'"><span class="ttl">Este ano</span><b class="hd">'+G.ev.nm+'</b><p>'+G.ev.txt+'</p></div>';
     (G.notes||[]).forEach(n=>{h+='<div class="event"><b class="hd">Aviso</b><p>'+n+'</p></div>';});
     if(!G.closed){
@@ -1497,7 +1499,7 @@ html{scroll-padding-top:4rem}
       if(G.forced)h+=cardHtml(G.forced,-1,true,0);
       G.hand.forEach((c,i)=>{h+=cardHtml(c,i,false,G.room-spent);});
       h+='</div>';
-      h+=exitsHtml(Tm);
+      h+=coach('exits')+exitsHtml(Tm);
       // barra: o limite do ano, com o que já estava comprometido, os programas marcados e o que sobra
       const pre=G.K.mun+G.forcedMun+G.dilemmaSpend,lim=capOf(),tot=Math.max(lim,pre+spent);
       const sl=G.hand.map((c,i)=>G.chosen.has(i)?{nm:c.nm,c:cardPlan(c,G.active.has(i)).first}:null).filter(Boolean);
@@ -1510,7 +1512,9 @@ html{scroll-padding-top:4rem}
       h+=newspaper(y)+mathHtml(y)+'<div class="react pulse">'+'<div class="jury">'+face('C',y.moodC)+'<span><b>Contador:</b> '+y.c+'</span></div><div class="jury">'+face('O',y.moodO)+'<span><b>Ouvidora:</b> '+y.o+'</span></div></div>';
       h+='<div><button class="btn" id="nextYear" type="button">'+(G.year<cfg.years?'Ir para '+(Y0+G.year):'Ver o retrato de '+(Y0+cfg.years))+'</button></div>';
     }
-    L.innerHTML=h;
+    // os detalhes abertos (data-k: "fonte", "por grupo", "Quem decide?") continuam abertos depois de redesenhar o painel
+    const open=[...L.querySelectorAll('details[open][data-k]')].map(d=>d.dataset.k);
+    L.innerHTML=h;open.forEach(k=>{const d=L.querySelector('details[data-k="'+k+'"]');if(d)d.open=true;});
     refocus(L,fk);
   }
   function nextYear(){
@@ -1524,7 +1528,8 @@ html{scroll-padding-top:4rem}
     const d=b.dataset;
     if(d.opt!==undefined)applyDilemma(+d.opt);
     else if(d.exit){if(exitOk(d.exit)){G.exit=d.exit;G.exitMemo=d.exit;G.exitNote='';G.tutAck.add('src');renderYear();}} // tocar numa opção conclui o passo 6
-    else if(b.id==='tutAck'){G.tutAck.add(d.k);if(d.k==='src')G.exitMemo='ab';renderYear();}
+    else if(b.id==='tutAck'){G.tutAck.add(d.k);if(d.k==='src')G.exitMemo='ab';renderYear();
+      if(d.k==='rob'){const c=$('gameLeft').querySelector('.coach');if(c)c.scrollIntoView();}} // o passo 6 aparece lá embaixo, junto das opções de corte
     else if(b.id==='closeYear')closeYear();
     else if(b.id==='nextYear')nextYear();
     else if(b.id==='copyShare')copyShare(b);
