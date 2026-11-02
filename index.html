@@ -26,6 +26,7 @@
   --good:#1f7a4d;
   --bad:#a13a2f;
   --on-fill:#fff;      /* texto sobre botões e chips preenchidos */
+  --neutral:#e3e9e7;   /* meio da escala de cores da cidade (nem ganhou, nem perdeu) */
   --q1:#0f6b6b; --q2:#3c8a86; --q3:#6ea8a3; --q4:#a3c7c2; --q5:#d2e4e1;
   --display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
   --body:"Source Serif 4", Georgia, "Times New Roman", serif;
@@ -35,7 +36,7 @@
   :root:not([data-theme="light"]){
     --bg:#0f1716; --bg-2:#141f1d; --card:#1a2624; --fg:#e6eeec; --muted:#9db0ab; --line:#2d3f3b;
     --accent:#5fc3bd; --accent-soft:#17403e; --loss:#e39a5c; --loss-soft:#3d2a18; --ink:#bfe3e0;
-    --good:#5fd08f; --bad:#f08a7a; --on-fill:#0f1716;
+    --good:#5fd08f; --bad:#f08a7a; --on-fill:#0f1716; --neutral:#34433f;
     --q1:#5fc3bd; --q2:#4aa39e; --q3:#3a827e; --q4:#2b625f; --q5:#1f4a48;
     color-scheme:dark;
   }
@@ -43,7 +44,7 @@
 :root[data-theme="dark"]{
   --bg:#0f1716; --bg-2:#141f1d; --card:#1a2624; --fg:#e6eeec; --muted:#9db0ab; --line:#2d3f3b;
   --accent:#5fc3bd; --accent-soft:#17403e; --loss:#e39a5c; --loss-soft:#3d2a18; --ink:#bfe3e0;
-  --good:#5fd08f; --bad:#f08a7a; --on-fill:#0f1716;
+  --good:#5fd08f; --bad:#f08a7a; --on-fill:#0f1716; --neutral:#34433f;
   --q1:#5fc3bd; --q2:#4aa39e; --q3:#3a827e; --q4:#2b625f; --q5:#1f4a48;
   color-scheme:dark;
 }
@@ -252,13 +253,11 @@ a.btn{text-decoration:none;display:inline-block}
 .react div{border:1px solid var(--line);border-radius:8px;padding:.6rem .8rem;font-size:.92rem;background:var(--card)}
 .react .jury{display:grid;grid-template-columns:auto 1fr;gap:.8rem;align-items:start}
 .react .jury svg{width:52px;height:52px;flex:none}
-.city{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;margin:.2rem 0 .4rem}
-.city .hood{display:flex;flex-direction:column;align-items:center;gap:.25rem;min-width:0}
-.city .hood svg{width:100%;height:auto;max-width:96px}
-.city .hood .nm{font-family:var(--display);font-size:.72rem;color:var(--muted);text-align:center;line-height:1.15}
-.city .hood .d{font-family:var(--mono);font-size:.78rem;font-variant-numeric:tabular-nums}
 .citylegend{font-family:var(--display);font-size:.8rem;color:var(--muted);display:flex;gap:1rem;flex-wrap:wrap;margin:0 0 .4rem}
-.citylegend i{display:inline-block;width:.75em;height:.75em;border-radius:50%;margin-right:.35em;vertical-align:-1px}
+.citylegend{align-items:center;gap:.35rem .5rem}
+.citylegend .grad{display:inline-block;width:6rem;height:.7rem;border-radius:999px;background:linear-gradient(90deg,var(--loss),var(--neutral),var(--accent))}
+.citylegend .mono{font-family:var(--mono);font-size:.74rem}
+.citylegend .mut{flex-basis:100%;font-size:.74rem}
 .card .ico{grid-column:1;grid-row:2/span 3;width:30px;height:30px;justify-self:center}
 .card .story,.card .meta,.card details,.card .act{grid-column:2/span 2}
 /* o cobertor do ano: retalhos já costurados (compromissos), novos (programas), piloto e livre; o que passa fica para fora */
@@ -330,11 +329,14 @@ a.btn{text-decoration:none;display:inline-block}
 @keyframes flip{from{transform:none}to{transform:rotateY(180deg)}}
 /* mapa e pessoas: as cores mudam com transição, grupo por grupo */
 .cmode{margin-bottom:.5rem}
-.map{width:100%;height:auto;display:block}
-.map .ring{stroke:var(--card);stroke-width:2.5;fill-opacity:.5}
-.map .lbl{font-size:11px;fill:var(--fg);paint-order:stroke;stroke:color-mix(in srgb,var(--card) 80%,transparent);stroke-width:3px;stroke-linejoin:round}
+.cv svg{display:block;max-width:100%;overflow:visible}
+.cv .sky{fill:color-mix(in srgb,var(--line) 60%,var(--card))}
+.hexkey{display:flex;flex-wrap:wrap;gap:.2rem .9rem;font-family:var(--display);font-size:.78rem;margin-top:.4rem}
+.hexkey i{display:inline-block;width:.8em;height:.8em;border-radius:2px;margin-right:.3em;vertical-align:-1px}
+.hexkey b{font-family:var(--mono);font-weight:500}
+.hexkey .mut{color:var(--muted)}
 .mapcap{font-family:var(--display);font-size:.78rem;color:var(--muted);margin:.3rem 0 .6rem}
-@media (prefers-reduced-motion:no-preference){.map .ring,.city .ppl{transition:fill .8s ease;transition-delay:calc(var(--i)*.15s)}.city .d{transition:color .8s ease}}
+@media (prefers-reduced-motion:no-preference){.cfill{transition:fill .8s ease,background .8s ease;transition-delay:calc(var(--i)*.15s)}}
 /* tela final: turma e revanche */
 .turma{margin-top:1.4rem;border-top:1px solid var(--line);padding-top:1rem}
 .turma h4{font-size:1rem;margin-bottom:.3rem}
@@ -1722,51 +1724,83 @@ html{scroll-padding-top:4rem}
     const bangs=who==='O'?'<path d="M5 27q0-21 20-21t20 21q-3-9-10-10-4 3-10 3t-10-3q-7 1-10 10z" fill="'+c+'"/>':'';
     return '<svg viewBox="0 0 50 50" aria-hidden="true">'+(who==='O'?hair+head+bangs:head+hair)+'<circle cx="18" cy="24" r="2.2" fill="var(--fg)"/><circle cx="32" cy="24" r="2.2" fill="var(--fg)"/>'+brow+'<path d="'+mouth+'" fill="none" stroke="var(--fg)" stroke-width="2.2" stroke-linecap="round"/>'+(who==='C'?'<rect x="13" y="21" width="10" height="7" rx="2" fill="none" stroke="var(--fg)" stroke-width="1.5"/><rect x="27" y="21" width="10" height="7" rx="2" fill="none" stroke="var(--fg)" stroke-width="1.5"/><path d="M23 24h4" stroke="var(--fg)" stroke-width="1.5"/>':'')+'</svg>';
   }
-  // cor de cada grupo pelo ganho (ou perda) acumulado, em dias de vida saudável por pessoa
-  const hcol=d=>d>=20?'var(--good)':d>=5?'var(--accent)':d>-5?'var(--muted)':d>-20?'var(--loss)':'var(--bad)';
+  // cor de cada grupo pelo ganho (ou perda) acumulado, em dias de vida saudável por pessoa: escala contínua, de âmbar
+  // (perdeu) a verde-azulado (ganhou), saturada em ±S dias; S acompanha a maior mudança da partida, em passos redondos
+  const scaleS=days=>{const m=Math.max(...days.map(Math.abs));return [5,10,20,40,80,160].find(x=>x>=m)||Math.ceil(m/100)*100;};
+  const hcol=(d,S)=>{const t=Math.max(-1,Math.min(1,d/S)),k=Math.round(Math.abs(t)*100);return 'color-mix(in srgb,'+(t<0?'var(--loss)':'var(--accent)')+' '+k+'%,var(--neutral))';};
   // rótulo do grupo num gráfico: curto quando a coluna é estreita (celular)
   const QS=['+ pobres','Pobres','Meio','Ricos','+ ricos'],qlab=(i,band)=>band<78?QS[i]:QL[i];
   const HOODS=['Jardim Esperança','Vila Operária','Vila Nova','Vila Rica','Centro']; // um bairro por grupo, da periferia ao centro
-  let CMODE='mapa';
-  const LEGEND='<div class="citylegend"><span><i style="background:var(--good)"></i>ganhou muito</span><span><i style="background:var(--accent)"></i>ganhou</span><span><i style="background:var(--muted)"></i>como estava</span><span><i style="background:var(--loss)"></i>perdeu</span><span><i style="background:var(--bad)"></i>perdeu muito</span></div>';
-  // pessoas: 20 bonecos por grupo, pintados pela cor do grupo (data-q: o grupo, para pintar sem redesenhar)
-  function peopleHtml(days){
-    return '<div class="city cv" data-m="pessoas">'+days.map((d,q)=>{let p='';for(let k=0;k<20;k++){const x=6+(k%5)*18,y=6+Math.floor(k/5)*20;p+='<circle cx="'+(x+6)+'" cy="'+(y+4)+'" r="3.6"/><path d="M'+(x+1)+' '+(y+18)+'v-5q0-4 5-4t5 4v5z"/>';}
-      return '<div class="hood"><svg viewBox="0 0 96 86" role="img" aria-label="'+QL[q]+'"><g class="ppl" data-q="'+q+'" style="fill:'+hcol(d)+';--i:'+q+'">'+p+'</g></svg><span class="nm">'+QL[q]+'</span><span class="d" data-qd="'+q+'" style="color:'+hcol(d)+'">'+sgn1(d)+' d</span></div>';}).join('')+'</div>';
-  }
-  // mapa: a cidade em anéis, do centro (mais ricos) à periferia (mais pobres), com os programas em funcionamento
-  const MAP={W:360,H:232,cx:180,cy:116,r:[[170,110],[132,88],[97,66],[63,44],[31,22]]};
-  function ringPath(q){
-    const [rx,ry]=MAP.r[q];let d='';
-    for(let k=0;k<=48;k++){const t=k/48*2*Math.PI,w=1+0.05*Math.sin(3*t+q*1.7)+0.035*Math.cos(5*t+q);d+=(k?'L':'M')+(MAP.cx+rx*w*Math.cos(t)).toFixed(1)+' '+(MAP.cy+ry*w*Math.sin(t)).toFixed(1);}
-    return d+'Z';
-  }
-  function mapMarkers(){
+  let CMODE='linha';
+  const legend=S=>'<div class="citylegend"><span>perdeu</span><span class="mono" data-s="-">−'+S+' d</span><i class="grad" aria-hidden="true"></i><span class="mono" data-s="+">+'+S+' d</span><span>ganhou</span><span class="mut">dias de vida saudável por pessoa, desde 2027</span></div>';
+  // programas em funcionamento (e os que começaram no ano que acabou de fechar), cada um no grupo que mais ganha com ele
+  function progsByGroup(){
     const by=[[],[],[],[],[]];
-    G.progs.filter(p=>running(p,G.year)||G.closed&&p.start===G.year&&!p.pontual&&!p.closedAt).forEach(p=>{const m=Math.max(...p.sh);by[p.sh.indexOf(m)].push(p);});
-    const ang=[0,180,32,212,-32,148,62,242,-62,118],angC=[90,50,130];
-    return by.map((ps,q)=>{const [rx,ry]=MAP.r[q],[ix,iy]=q<4?MAP.r[q+1]:[0,0],mx=q<4?(rx+ix)/2:rx*.62,my=q<4?(ry+iy)/2:ry*.62;
-      return ps.slice(0,q<4?10:3).map((p,k)=>{const t=(q<4?ang:angC)[k]*Math.PI/180,x=MAP.cx+mx*Math.cos(t),y=MAP.cy+my*Math.sin(t);
-        return '<g class="mk"><title>'+p.nm+'</title><circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="10.5" fill="var(--card)" stroke="var(--accent)" stroke-width="1.5"/>'+(ICON[p.tipo]||'').replace('<svg ','<svg x="'+(x-9).toFixed(1)+'" y="'+(y-9).toFixed(1)+'" width="18" height="18" ')+'</g>';}).join('');}).join('');
+    G.progs.filter(p=>running(p,G.year)||G.closed&&p.start===G.year&&!p.pontual&&!p.closedAt).forEach(p=>{by[p.sh.indexOf(Math.max(...p.sh))].push(p);});
+    return by;
   }
-  function mapHtml(days){
-    let sv='<svg class="map" viewBox="0 0 '+MAP.W+' '+MAP.H+'" role="img" aria-label="Mapa da cidade, do centro à periferia, com o ganho de cada bairro">';
-    for(let q=0;q<N;q++)sv+='<path class="ring" d="'+ringPath(q)+'" data-q="'+q+'" style="fill:'+hcol(days[q])+';--i:'+q+'"><title>'+HOODS[q]+' ('+QL[q].toLowerCase()+')</title></path>';
-    // rótulos: alternam em cima e embaixo, na faixa de cada anel
-    const ly=q=>q===4?MAP.cy+4:MAP.cy+(q%2?-1:1)*((MAP.r[q][1]+MAP.r[q+1][1])/2)+4;
-    for(let q=0;q<N;q++)sv+='<text class="lbl" x="'+MAP.cx+'" y="'+ly(q).toFixed(1)+'" text-anchor="middle"><tspan font-weight="700">'+HOODS[q]+'</tspan> <tspan data-qd="'+q+'">'+sgn1(days[q])+' d</tspan></text>';
-    return '<div class="cv" data-m="mapa">'+sv+'<g id="mapMk">'+mapMarkers()+'</g></svg><p class="mapcap">Do centro, onde moram os mais ricos, à periferia, onde moram os mais pobres. Os ícones são os programas em funcionamento, no bairro que mais ganha com cada um.</p></div>';
+  const icoAt=(t,x,y,s)=>(ICON[t]||'').replace('<svg ','<svg x="'+(x-s/2).toFixed(1)+'" y="'+(y-s/2).toFixed(1)+'" width="'+s+'" height="'+s+'" ');
+  const dcol=d=>d<-0.05?'var(--loss)':d>0.05?'var(--accent)':'var(--muted)';
+  // linha: uma linha de ônibus da periferia ao centro; em cada parada, a vida saudável esperada e quanto mudou desde
+  // 2027. Ao fundo, casas baixas na periferia e prédios no centro; os programas são placas acima das paradas
+  const LINE={y:118,sky:[[5,10],[6,14],[7,22],[8,40],[9,64]]};
+  function lineGeo(W){const pad=Math.max(34,W*.09),gap=(W-2*pad)/4;return {pad,gap,x:i=>pad+i*gap};}
+  function lineMarks(W){
+    const {x}=lineGeo(W),Ly=LINE.y;
+    return progsByGroup().map((ps,q)=>ps.slice(0,ps.length>3?2:3).map((p,k)=>{const y=Ly-30-k*24;
+      return '<g class="mk"><title>'+p.nm+'</title><rect x="'+(x(q)-11)+'" y="'+(y-11)+'" width="22" height="22" rx="5" fill="var(--card)" stroke="var(--accent)" stroke-width="1.5"/>'+icoAt(p.tipo,x(q),y,18)+'</g>';}).join('')+
+      (ps.length>3?'<text x="'+x(q)+'" y="'+(Ly-30-2*24+4)+'" font-size="11" font-weight="700" text-anchor="middle" fill="var(--accent)">+'+(ps.length-2)+'</text>':'')).join('');
   }
-  // painel direito: monta uma vez e, nas vezes seguintes, só repinta (as cores mudam com transição, grupo por grupo)
+  function lineHtml(W,days,h,S){
+    const {gap,x}=lineGeo(W),Ly=LINE.y,H=Ly+88,short=gap<92;
+    let sv='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="Linha de ônibus da periferia ao centro, com a vida saudável esperada em cada bairro">';
+    LINE.sky.forEach(([n,hh],q)=>{const bw=gap*.9/n;for(let k=0;k<n;k++){const bx=x(q)-gap*.45+k*bw,bh=hh*(0.6+0.4*((k*7+q*3)%5)/4),top=Ly-14-bh;
+      sv+='<rect class="sky" x="'+bx.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+(bw-2).toFixed(1)+'" height="'+bh.toFixed(1)+'"/>'+(q<2?'<path class="sky" d="M'+(bx-1).toFixed(1)+' '+top.toFixed(1)+'l'+(bw/2).toFixed(1)+' -'+(bw/2.4).toFixed(1)+'l'+(bw/2).toFixed(1)+' '+(bw/2.4).toFixed(1)+'z"/>':'');}});
+    sv+='<line x1="'+x(0)+'" x2="'+x(4)+'" y1="'+Ly+'" y2="'+Ly+'" stroke="var(--accent)" stroke-width="7" stroke-linecap="round"/>';
+    for(let q=0;q<N;q++){
+      sv+='<g><title>'+HOODS[q]+' ('+QL[q].toLowerCase()+')</title><circle cx="'+x(q)+'" cy="'+Ly+'" r="11" fill="var(--card)" stroke="var(--accent)" stroke-width="4"/><circle class="cfill" data-q="'+q+'" style="fill:'+hcol(days[q],S)+';--i:'+q+'" cx="'+x(q)+'" cy="'+Ly+'" r="6.5"/></g>';
+      sv+='<text x="'+x(q)+'" y="'+(Ly+29)+'" font-size="11.5" font-weight="700" text-anchor="middle">'+(short?HOODS[q].split(' ').pop():HOODS[q].replace('Jardim ','Jd. '))+'</text>';
+      sv+='<text x="'+x(q)+'" y="'+(Ly+43)+'" font-size="10.5" text-anchor="middle" class="mut">'+QL[q].toLowerCase()+'</text>';
+      sv+='<text x="'+x(q)+'" y="'+(Ly+62)+'" font-size="14" text-anchor="middle" class="mono" data-qh="'+q+'">'+fmt1.format(h[q])+'</text>';
+      sv+='<text x="'+x(q)+'" y="'+(Ly+78)+'" font-size="11" text-anchor="middle" class="mono" data-qd="'+q+'" style="fill:'+dcol(days[q])+'">'+sgn1(days[q])+' d</text>';}
+    return '<div class="cv" data-m="linha">'+sv+'<g id="cityMk">'+lineMarks(W)+'</g></svg><p class="mapcap">Uma linha de ônibus da periferia ao centro. Em cada parada, os anos de vida saudável que cada pessoa pode esperar e, embaixo, quanto isso mudou desde 2027. As placas são os programas em funcionamento, na parada do bairro que mais ganha com cada um.</p></div>';
+  }
+  // hexágonos: cada um, 10 mil pessoas; 20 por grupo, do centro (mais ricos) à periferia (mais pobres)
+  let HEXC=[];
+  function hexPath(cx,cy,r){let d='';for(let k=0;k<6;k++){const a=Math.PI/180*(60*k-30);d+=(k?'L':'M')+(cx+r*Math.cos(a)).toFixed(1)+' '+(cy+r*Math.sin(a)).toFixed(1);}return d+'Z';}
+  function hexCells(W){
+    const cols=15,rows=11,r=Math.min(16,W/29),hw=Math.sqrt(3)*r,tw=cols*hw+hw/2,ox=(W-tw)/2+hw/2,H=(rows-1)*1.5*r+2*r+4,cy0=r+2,mid=(H-4)/2;
+    const cells=[];
+    for(let row=0;row<rows;row++)for(let c=0;c<cols;c++){const cx=ox+c*hw+(row%2?hw/2:0),cy=cy0+row*r*1.5,dx=(cx-W/2)/(tw/2),dy=(cy-mid)/(H/2),d=Math.hypot(dx,dy)+0.08*Math.sin(c*1.7+row*2.3);if(d<=1.02)cells.push({cx,cy,d});}
+    cells.sort((a,b)=>a.d-b.d);const out=cells.slice(0,100);out.forEach((h,k)=>{h.q=4-Math.floor(k/20);});
+    return {cells:out,r,H};
+  }
+  function hexMarks(){
+    if(!HEXC.cells)return '';const r=HEXC.r;
+    return progsByGroup().map((ps,q)=>{const hs=HEXC.cells.filter(h=>h.q===q);return ps.slice(0,hs.length).map((p,k)=>{const h=hs[Math.floor(((k*0.382+0.19)%1)*hs.length)];
+      return '<g class="mk"><title>'+p.nm+'</title><path d="'+hexPath(h.cx,h.cy,r-2)+'" fill="var(--card)" stroke="var(--accent)" stroke-width="1.5"/>'+icoAt(p.tipo,h.cx,h.cy,Math.round(r*1.25))+'</g>';}).join('');}).join('');
+  }
+  function hexHtml(W,days,S){
+    HEXC=hexCells(W);
+    let sv='<svg viewBox="0 0 '+W+' '+HEXC.H+'" width="'+W+'" height="'+HEXC.H+'" role="img" aria-label="A cidade em hexágonos de 10 mil pessoas, do centro à periferia">';
+    HEXC.cells.forEach(h=>{sv+='<path class="cfill" data-q="'+h.q+'" style="fill:'+hcol(days[h.q],S)+';--i:'+h.q+'" d="'+hexPath(h.cx,h.cy,HEXC.r-1)+'"><title>'+HOODS[h.q]+' ('+QL[h.q].toLowerCase()+')</title></path>';});
+    const key='<div class="hexkey">'+HOODS.map((n,q)=>'<span><i class="cfill" data-q="'+q+'" style="background:'+hcol(days[q],S)+'"></i>'+n+' <span class="mut">('+QL[q].toLowerCase()+')</span> <b data-qd="'+q+'" style="color:'+dcol(days[q])+'">'+sgn1(days[q])+' d</b></span>').join('')+'</div>';
+    return '<div class="cv" data-m="hex">'+sv+'<g id="cityMk">'+hexMarks()+'</g></svg>'+key+'<p class="mapcap">Cada hexágono são 10 mil pessoas: 20 por grupo, do centro, onde moram os mais ricos, à periferia, onde moram os mais pobres. Os ícones são os programas em funcionamento, no bairro que mais ganha com cada um.</p></div>';
+  }
+  // painel direito: monta uma vez (e de novo se a largura mudar) e, nas vezes seguintes, só repinta: as cores mudam com
+  // transição, grupo por grupo
   function cityBox(el){
-    const days=G.cum.map(x=>x/POP*365);
-    if(!el.querySelector('.cv[data-m="'+CMODE+'"]')){
-      el.innerHTML='<div class="presets cmode" role="group" aria-label="Como ver a cidade">'+[['mapa','Mapa'],['pessoas','Pessoas']].map(([k,t])=>'<button class="chip" type="button" data-cmode="'+k+'" aria-pressed="'+(CMODE===k)+'">'+t+'</button>').join('')+'</div>'+LEGEND+(CMODE==='mapa'?mapHtml(days):peopleHtml(days));
+    const days=G.cum.map(x=>x/POP*365),h=H0G.map((x,i)=>x+G.cum[i]/POP),S=scaleS(days),W=Math.max(260,Math.round(el.clientWidth||360));
+    if(!el.querySelector('.cv[data-m="'+CMODE+'"]')||Math.abs(W-(+el.dataset.w||0))>12){
+      el.dataset.w=W;
+      el.innerHTML='<div class="presets cmode" role="group" aria-label="Como ver a cidade">'+[['linha','Linha'],['hex','Hexágonos']].map(([k,t])=>'<button class="chip" type="button" data-cmode="'+k+'" aria-pressed="'+(CMODE===k)+'">'+t+'</button>').join('')+'</div>'+legend(S)+(CMODE==='linha'?lineHtml(W,days,h,S):hexHtml(W,days,S));
       return;
     }
-    el.querySelectorAll('[data-q]').forEach(n=>{n.style.fill=hcol(days[+n.dataset.q]);});
-    el.querySelectorAll('[data-qd]').forEach(n=>{const d=days[+n.dataset.qd];n.textContent=sgn1(d)+' d';if(n.tagName==='SPAN')n.style.color=hcol(d);});
-    const mk=el.querySelector('#mapMk');if(mk)mk.innerHTML=mapMarkers();
+    el.querySelectorAll('[data-s]').forEach(n=>{n.textContent=(n.dataset.s==='-'?'−':'+')+S+' d';});
+    el.querySelectorAll('[data-q]').forEach(n=>{const c=hcol(days[+n.dataset.q],S);if(n.tagName==='I')n.style.background=c;else n.style.fill=c;});
+    el.querySelectorAll('[data-qd]').forEach(n=>{const d=days[+n.dataset.qd];n.textContent=sgn1(d)+' d';if(n.tagName==='B')n.style.color=dcol(d);else n.style.fill=dcol(d);});
+    el.querySelectorAll('[data-qh]').forEach(n=>{n.textContent=fmt1.format(h[+n.dataset.qh]);});
+    const mk=el.querySelector('#cityMk');if(mk)mk.innerHTML=CMODE==='linha'?lineMarks(W):hexMarks();
   }
   // linha do tempo do mandato: saldo de cada ano, eleições, conferências, prazo do pacto e o que já aconteceu
   function tlHtml(){
@@ -2358,7 +2392,7 @@ html{scroll-padding-top:4rem}
     sl+='<circle cx="'+x2(vals.length-1)+'" cy="'+y2(vals[vals.length-1])+'" r="5" fill="var(--fg)" stroke="var(--card)" stroke-width="2"/></svg>';
     $('gLine').innerHTML=sl;
   }
-  if(window.ResizeObserver){let raf=0;new ResizeObserver(()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{if(G&&!$('gPlay').hidden)renderCharts();});}).observe($('gameRight'));}
+  if(window.ResizeObserver){let raf=0;new ResizeObserver(()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{if(G&&!$('gPlay').hidden){renderCharts();cityBox($('gCity'));}});}).observe($('gameRight'));}
   $('gCity').addEventListener('click',e=>{const b=e.target.closest('[data-cmode]');if(!b)return;CMODE=b.dataset.cmode;cityBox($('gCity'));});
   // réguas das notas (o saldo que vale 10) e limiares dos títulos, por duração do mandato
   const GRADES={10:{C:62000,O:76000,L:20000,thrN:40000,thrD:15},5:{C:22000,O:25000,L:20000,thrN:14000,thrD:2.5}};
@@ -2417,7 +2451,7 @@ html{scroll-padding-top:4rem}
   function replaySame(){
     const st=popStats();
     GHOST={hist:G.hist.slice(),byYear:G.byYear.map(b=>Object.assign({},b)),title:FINAL.title,g:[FINAL.gC,FINAL.gO,FINAL.gL],net:st.net,ew:st.ew,legacy:st.legacy,d:FINAL.d};
-    CMODE='mapa';$('gCity').innerHTML='';newGame();instant(()=>window.scrollTo(0,0));focusEl($('gameLeft').querySelector('.yr .y'));
+    $('gCity').innerHTML='';newGame();instant(()=>window.scrollTo(0,0));focusEl($('gameLeft').querySelector('.yr .y'));
   }
   // na tela final de uma revanche: as duas partidas lado a lado
   function ghostCompare(title,gC,gO,gL,s,d){
