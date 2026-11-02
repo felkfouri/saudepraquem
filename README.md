@@ -35,8 +35,9 @@ docs/modelo.md  as fórmulas: custo de oportunidade, EDE de Atkinson, saldo pond
 docs/jogo.md    regras do jogo, campos dos dados e como acrescentar propostas, dilemas, eventos e cidades
 tests/motor.js    motor de referência do jogo, sem navegador: as regras escritas à parte, com os dados lidos do index.html
 tests/validar.js  joga partidas na página (Playwright) e no motor, com as mesmas decisões, e compara
+tests/dados.js    confere a consistência dos dados do jogo (somas, imp + n·cus = cost, nomes e chaves que existem)
 tests/dilemas.js  mede se algum dilema tem resposta dominante (melhor para o Contador e para a Ouvidora ao mesmo tempo)
-package.json    dependência de desenvolvimento (Playwright) e o comando npm test
+package.json    dependência de desenvolvimento (Playwright) e os comandos npm test, npm run dados e npm run dilemas
 README.md
 ```
 
@@ -56,9 +57,20 @@ Alguns comportamentos gerais:
 - **Foco e teclado.** Como os painéis do jogo são redesenhados por inteiro, `refocus` devolve o foco ao controle equivalente e `toTurn` leva o leitor ao começo do painel quando o ano muda.
 - **Tema.** O tema escuro segue o sistema operacional. Para forçar um tema, use `<html data-theme="dark">` ou `data-theme="light"`. Todas as cores vêm das variáveis CSS do topo do arquivo.
 - **Renderização.** Gráficos são SVG montados como texto. O laboratório redesenha tudo a cada mudança nos controles (cerca de 1 ms). No jogo, o painel esquerdo é redesenhado a cada ação, e os cliques são tratados por delegação de eventos no próprio painel.
-- **Dados.** Propostas, complementos, dilemas, eventos, cidades e cenários do laboratório são constantes no início de cada seção do script. Os comentários acima de cada uma descrevem os campos; [`docs/jogo.md`](docs/jogo.md) explica como acrescentar itens.
+- **Dados.** Propostas, complementos, dilemas, eventos, cidades, cartas do tutorial e cenários do laboratório são constantes no início de cada seção do script. Os comentários acima de cada uma descrevem os campos; [`docs/jogo.md`](docs/jogo.md) explica como acrescentar itens.
+- **Códigos colados.** Os códigos da turma vêm de outras pessoas, então `cleanTurma` só deixa passar números, textos curtos e listas no formato esperado antes de montar a comparação. Qualquer texto novo vindo de fora deve passar por `esc` antes de entrar no HTML.
 
 ## Como verificar uma mudança
+
+Resumo: `npm test` depois de qualquer mudança no jogo (dados + paridade com o motor + cliques ao acaso, alguns minutos); `npm run dados` depois de mexer só em números ou textos dos dados (menos de um segundo); `npm run dilemas` depois de mexer num dilema.
+
+### Consistência dos dados
+
+`tests/dados.js` confere, sem navegador, as regras que os comentários pedem para os dados: `sh` com 5 valores somando 100, `profile` somando 1, `imp + n·cus = cost` nos programas, piloto só em programa, `hab` começando com "com", complementos, tags e tipos conhecidos, nomes únicos, combinações e cartas do tutorial que apontam para propostas existentes, perfis de quem perde somando 100 e cada dilema com `t`, `d` e `n`. Roda antes da validação no `npm test`, ou sozinho:
+
+```bash
+npm run dados
+```
 
 ### Validação automática do jogo
 
@@ -77,6 +89,12 @@ npm install
 npx playwright install chromium
 ```
 
+Se já houver um Chromium instalado (num contêiner, por exemplo), dá para pular o download e apontar para ele:
+
+```bash
+CHROMIUM_PATH=/caminho/do/chromium npm test
+```
+
 Depois, a cada mudança:
 
 ```bash
@@ -89,7 +107,7 @@ ou, para escolher o tamanho (número de códigos e de partidas ao acaso):
 node tests/validar.js 6 60
 ```
 
-Leva cerca de 3 segundos por partida e termina com código 0 se tudo bater; cada diferença aparece com o ano e os dois valores.
+Leva cerca de 3 segundos por partida (o padrão, 72 partidas de paridade e 20 ao acaso, uns 5 minutos) e termina com código 0 se tudo bater; cada diferença aparece com o ano e os dois valores.
 
 ### Equilíbrio dos dilemas
 
@@ -107,7 +125,7 @@ node tests/dilemas.js 300 5
 
 Para testar números sem editar a página, passe um arquivo de ajustes como terceiro argumento (o formato está no comentário do topo do script).
 
-O motor lê do `index.html` os dados do jogo (cidades, propostas, dilemas, eventos, opções de corte, dinheiro do ano e réguas), então mudar um número ou acrescentar uma proposta não exige mexer nele. As regras, ao contrário, estão escritas duas vezes, de propósito: se uma regra mudar na página (a ordem de pagamento da conta, o apoio político, os títulos, as cartas do tutorial), mude também `tests/motor.js`, senão a validação acusa a diferença. Uma mudança que acrescente, tire ou reordene sorteios precisa ser feita nos dois lugares.
+O motor lê do `index.html` o trecho entre o comentário `/* ---------- Jogo: dez anos de gestão ---------- */` e `// gerador com semente`, mais a linha de `GRADES`: os dados do jogo (cidades, propostas, dilemas, eventos, opções de corte, dinheiro do ano, réguas e cartas do tutorial), então mudar um número ou acrescentar uma proposta não exige mexer nele. As regras, ao contrário, estão escritas duas vezes, de propósito: se uma regra mudar na página (a ordem de pagamento da conta, o apoio político, os títulos), mude também `tests/motor.js`, senão a validação acusa a diferença. Uma mudança que acrescente, tire ou reordene sorteios precisa ser feita nos dois lugares.
 
 ### Verificação à mão
 

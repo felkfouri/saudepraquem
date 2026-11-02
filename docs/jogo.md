@@ -14,7 +14,7 @@ Definida na tela "Antes de assumir" e guardada em `cfg`:
 | Dificuldade | fácil, normal, difícil | ver [Dificuldade](#dificuldade) |
 | Cidade | capital desigual, cidade média, cidade envelhecida | saúde de partida, erosão da rotina, quem perde em cada corte e bônus de infraestrutura (`CITIES`) |
 | ε da Ouvidora | 0 a 20 (padrão 11) | aversão à desigualdade usada no saldo ponderado |
-| Tutorial | ligado (padrão) | anos 1 e 2 com cartas fixas, dilema da equipe de avaliação no ano 2 e dicas passo a passo (`coach`) |
+| Tutorial | ligado (padrão) | anos 1 e 2 com cartas fixas (`TUTORIAL_HANDS`), dilema da equipe de avaliação no ano 2 e dicas passo a passo (`coach`) |
 | Mostrar a conta | desligado (padrão) | abre a planilha da DCEA ao fechar cada ano (`mathHtml`) |
 | Código da partida | 1 a 9999 | semente do sorteio |
 
@@ -32,7 +32,7 @@ Qualquer mudança que acrescente, remova ou reordene chamadas a `G.r()` muda o q
 
 ### Conferir uma mudança
 
-`tests/motor.js` reescreve as regras deste documento sem navegador, lendo os dados do próprio `index.html`, e `tests/validar.js` joga partidas na página e no motor com as mesmas decisões e compara ano a ano (ver o [README](../README.md#validação-automática-do-jogo)). Mudar dados não exige mexer no motor; mudar uma regra, sim.
+`tests/motor.js` reescreve as regras deste documento sem navegador, lendo os dados do próprio `index.html`, e `tests/validar.js` joga partidas na página e no motor com as mesmas decisões e compara ano a ano (ver o [README](../README.md#validação-automática-do-jogo)). Mudar dados não exige mexer no motor; mudar uma regra, sim. `tests/dados.js` confere as regras dos dados listadas em [Como acrescentar conteúdo](#como-acrescentar-conteúdo) (somas, `imp + n·cus = cost`, nomes): rode `npm run dados` depois de acrescentar ou mudar qualquer item.
 
 ## O ciclo de um ano
 
@@ -91,7 +91,7 @@ Com a equipe de avaliação contratada (ou no modo fácil), as cartas de evidên
 
 O custo por ano ganho e o selo do limiar usam o preço de hoje (`cost ÷ gain`, com `imp + n·cus = cost`), sem o reajuste; na lista de compromissos, o custo por ano ganho de cada programa em funcionamento usa o custeio do ano.
 
-Cartas sem `cus` são ações pontuais (terapia gênica, campanha de mídia, aplicativo, mutirão de catarata): pagam `cost` no ano e rendem `gain` uma vez, pelo `profile`. O SAMU rende em dois anos (`profile:[.5,.5]`).
+Cartas sem `cus` são ações pontuais (terapia gênica, campanha de mídia, aplicativo, mutirão de catarata): pagam `cost` no ano e rendem `gain` uma vez, pelo `profile` (a terapia gênica, por exemplo, em dois anos, `profile:[.5,.5]`).
 
 Financiar de novo uma carta cujo programa já funciona cria um segundo programa, com o próprio custeio e o próprio ganho; o card avisa.
 
@@ -233,7 +233,7 @@ A tela final mostra também a **herança** (programas que seguem funcionando e o
 
 **Jogar de novo com o mesmo código.** Recomeça a partida com a mesma configuração e guarda a anterior (`GHOST`, em `G.ghost`): o painel do ano mostra o que foi decidido no mesmo ano da partida anterior, o gráfico da distância traz a linha tracejada dela, e a tela final compara as duas, com as decisões de cada ano.
 
-**Código da turma.** A tela final gera um código `CC1.` + JSON em base64 (nome, configuração, título, notas, placares, distância e as decisões de cada ano em forma curta: índice em `DECK`, `a` com complemento, `p` piloto, `j` ordem judicial, `x` carta extra; a opção que pagou; quantos encerrados). Em "Comparar a turma", na tela inicial, os códigos colados viram um gráfico Contador × Ouvidora, uma tabela e, para quem jogou a mesma partida, as decisões ano a ano lado a lado. Os códigos guardam índices de `DECK`: reordenar o baralho troca o nome das decisões em códigos antigos.
+**Código da turma.** A tela final gera um código `CC1.` + JSON em base64 (nome, configuração, título, notas, placares, distância e as decisões de cada ano em forma curta: índice em `DECK`, `a` com complemento, `p` piloto, `j` ordem judicial, `x` carta extra; a opção que pagou; quantos encerrados). Em "Comparar a turma", na tela inicial, os códigos colados viram um gráfico Contador × Ouvidora, uma tabela e, para quem jogou a mesma partida, as decisões ano a ano lado a lado. Os códigos guardam índices de `DECK`: reordenar o baralho troca o nome das decisões em códigos antigos. Como os códigos vêm de outras pessoas, `cleanTurma` os saneia antes de montar a comparação: números viram números finitos (duração só 5 ou 10, notas entre 0 e 10), textos são cortados e escapados, e o que não tem o formato esperado é descartado. Um campo novo no código precisa entrar também em `cleanTurma`.
 
 **Imagem.** "Baixar imagem" desenha num canvas (1200 × 630, com as cores do tema) o título, as notas, os dias por grupo e a distância.
 
@@ -271,7 +271,8 @@ Acrescente um objeto a `DECK`:
 - `tipo` deve ser um dos quatro que têm ícone em `ICON`; outro valor funciona, mas a carta fica sem ícone. Com `'infraestrutura'`, o ganho recebe o bônus `CITY.infra`.
 - `tags` e `addon` são opcionais. Use `'aps'` para a carta poder ser garantida na transferência federal e `'vig'` para amortecer a epidemia.
 - `eq`: equipes que a implantação exige (0 para remédio, campanha, aplicativo). `pilot` (opcional): como seria o piloto, em poucas palavras ("em duas unidades básicas"); só em programas (com `cus`) que dá para testar em pequena escala. Para a carta entrar numa combinação, ponha o `nm` dela em `alvo` ou `par` de `SINERGIAS`.
-- Se mudar o `nm` das cartas do tutorial, atualize as listas `want` em `dealYear` e os prefixos procurados em `coach`.
+- Se mudar o `nm` das cartas do tutorial, atualize `TUTORIAL_HANDS` (lida também pelo motor) e os prefixos procurados em `coach` ("Vacinação", "Rastreamento").
+- Depois, `npm run dados` confere as regras acima.
 
 ### Novo complemento
 

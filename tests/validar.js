@@ -7,6 +7,7 @@
    2. Partidas com cliques ao acaso: nenhum erro de JavaScript e nenhum ano que não feche.
    Nas duas partes, o jornal de cada ano não pode ter "undefined", "NaN" nem marcador de texto sem preencher ({p}).
    Uso: node tests/validar.js [códigos=4] [partidas ao acaso=20]
+   Para usar um Chromium já instalado em vez do baixado pelo Playwright: CHROMIUM_PATH=/caminho/do/chrome.
    Termina com código 0 se tudo bater. Leva cerca de 3 segundos por partida. */
 const {chromium}=require('playwright');
 const path=require('path'),{pathToFileURL}=require('url');
@@ -167,7 +168,7 @@ async function random(page,r){
   const runs=[];
   for(const seed of seeds)for(const city of cities)for(const pol of POLICIES)runs.push({cfg:{seed,city,years:10,tutorial:false},pol});
   for(const seed of seeds)for(const city of cities)for(const pol of [POLICIES[0],POLICIES[2]])runs.push({cfg:{seed,city,years:5,tutorial:true},pol});
-  const browser=await chromium.launch();
+  const browser=await chromium.launch(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{});
   const page=await (await browser.newContext({reducedMotion:'reduce'})).newPage();
   page.setDefaultTimeout(8000);page.on('dialog',d=>d.accept());
   const errors=[];page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
