@@ -1370,6 +1370,9 @@ html{scroll-padding-top:4rem}
       jornal:['Depois de dois meses, os servidores voltaram ao trabalho com promessa de negociação. A fila de cirurgias acumulada vai levar meses para andar.',
               'Os dois meses de paralisação jogaram o atendimento de rotina para as unidades básicas, que não davam conta. Quem só tem o SUS esperou mais.']}
   };
+  // tutorial: as cartas fixas dos anos 1 e 2, por nome (coach procura as do ano 1 pelo começo do nome)
+  const TUTORIAL_HANDS={1:['Vacinação na escola pública','Rastreamento de câncer por carta','Centro de cirurgia robótica','Campanha de mídia sobre alimentação'],
+    2:['Hipertensão e diabetes na atenção básica','Hospital-dia de cirurgia eletiva','Terapia gênica para doença rara','Transporte sanitário para consultas']};
   // gerador com semente (mulberry32), para partidas reproduzíveis
   function rng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
   let G=null, GHOST=null, cfg={years:10,eps:11,seed:null,tutorial:true,city:'capital',showMath:false,diff:'normal'};
@@ -1392,7 +1395,7 @@ html{scroll-padding-top:4rem}
   function newGame(){
     const r=rng(cfg.seed*7919+cfg.years);
     const evKeys=shuffle(Object.keys(EVENTS),r);
-    // anos sorteados: eventos e dilemas nunca no mesmo ano, nunca no ano 1, nunca dois seguidos do mesmo tipo
+    // anos sorteados: eventos e dilemas nunca no mesmo ano nem no ano 1 (em 10 anos, 8 dos 9 anos seguintes têm um ou outro)
     const nEv=cfg.years===10?4:2,nDi=cfg.years===10?4:2;
     const pool=shuffle(Array.from({length:cfg.years-1},(_,k)=>k+2),r);
     const pick=(n,avoid)=>{const out=[];for(const y of pool){if(out.length>=n)break;if(avoid.has(y))continue;out.push(y);}return out.sort((a,b)=>a-b);};
@@ -1443,8 +1446,7 @@ html{scroll-padding-top:4rem}
     G.pilots=new Set();G.eqCap=Math.max(0,CITY.eq+G.eqUp-(G.ev&&G.ev.eqMinus||0));G.conf=CONF[cfg.years].includes(G.year);G.cons='nenhum';
     if(G.deck.length<5)G.deck=shuffle(DECK.filter(d=>!G.hand.includes(d)),G.r);
     let hand=G.deck.splice(0,4);
-    if(cfg.tutorial&&G.year<=2){const want=G.year===1?['Vacinação na escola pública','Rastreamento de câncer por carta','Centro de cirurgia robótica','Campanha de mídia sobre alimentação']:['Hipertensão e diabetes na atenção básica','Hospital-dia de cirurgia eletiva','Terapia gênica para doença rara','Transporte sanitário para consultas'];
-      G.deck.push(...hand);hand=want.map(n=>DECK.find(c=>c.nm===n));G.deck=G.deck.filter(c=>!hand.includes(c));}
+    if(cfg.tutorial&&G.year<=2){G.deck.push(...hand);hand=TUTORIAL_HANDS[G.year].map(n=>DECK.find(c=>c.nm===n));G.deck=G.deck.filter(c=>!hand.includes(c));}
     if(G.ev&&G.ev.ensureTag&&!hand.some(c=>(c.tags||[]).includes(G.ev.ensureTag))){
       const i=G.deck.findIndex(c=>(c.tags||[]).includes(G.ev.ensureTag));if(i>=0){G.deck.push(hand[0]);hand[0]=G.deck.splice(i,1)[0];}
     }
@@ -2474,7 +2476,7 @@ html{scroll-padding-top:4rem}
       N:Math.round(F.s.net),O:Math.round(F.s.ew),L:Math.round(F.s.legacy),D:r1(F.d),b:G.byYear.map(b=>[b.k.join(','),b.e,b.nc])}));
   }
   function updTurma(){const n=$('tName');if(!n)return;TNAME=n.value.trim();$('turmaTxt').value=turmaCode(TNAME);}
-  function copyTurma(b){const ta=$('turmaTxt');if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(ta.value).then(()=>{b.textContent='Copiado';}).catch(()=>ta.select());else ta.select();}
+  const copyTurma=b=>copyText($('turmaTxt'),b);
   $('gameLeft').addEventListener('input',e=>{if(e.target.id==='tName')updTurma();});
   // imagem do resultado (PNG), com as cores do tema
   function saveImage(){
@@ -2502,7 +2504,16 @@ html{scroll-padding-top:4rem}
   // comparar a turma (tela inicial): lê os códigos colados e mostra as partidas lado a lado
   const EXL={ab:'rotina',fila:'fila',pref:'outras pastas',baixo:'baixo valor'};
   function readTurma(t){
-    return t.split(/\s+/).filter(x=>/^CC1\./.test(x)).map(x=>{try{const o=JSON.parse(b64d(x.slice(4)));return o&&o.T&&Array.isArray(o.g)&&Array.isArray(o.b)?o:null;}catch(e){return null;}}).filter(Boolean);
+    return t.split(/\s+/).filter(x=>/^CC1\./.test(x)).map(x=>{try{return cleanTurma(JSON.parse(b64d(x.slice(4))));}catch(e){return null;}}).filter(Boolean);
+  }
+  // os códigos vêm de outras pessoas: só passam números finitos, textos curtos e listas no formato de turmaCode, para
+  // nenhum código colado injetar HTML na página nem travá-la (com uma duração enorme, por exemplo)
+  function cleanTurma(o){
+    if(!o||typeof o!=='object'||typeof o.T!=='string'||!Array.isArray(o.g)||!Array.isArray(o.b))return null;
+    const n=x=>{x=+x;return isFinite(x)?x:0;},s=(x,m)=>String(x==null?'':x).slice(0,m),y=+o.y===5?5:10;
+    return {n:s(o.n,40),s:Math.max(1,Math.min(9999,Math.floor(n(o.s))||1)),y,c:s(o.c,20),d:s(o.d,10),t:o.t?1:0,e:n(o.e),T:s(o.T,40),
+      g:[0,1,2].map(i=>Math.max(0,Math.min(10,n(o.g[i])))),N:Math.round(n(o.N)),O:Math.round(n(o.O)),L:Math.round(n(o.L)),D:n(o.D),
+      b:o.b.slice(0,y).map(b=>Array.isArray(b)?[s(b[0],200),s(b[1],10),Math.max(0,Math.min(99,Math.floor(n(b[2]))))]:null)};
   }
   function pickName(k){if(k==='j')return 'ordem judicial';if(k==='x')return 'carta extra';const m=/^(\d+)([ap]?)$/.exec(k);if(!m||!DECK[+m[1]])return '?';return DECK[+m[1]].nm+(m[2]==='p'?' (piloto)':m[2]==='a'?' (com complemento)':'');}
   function renderTurma(){
@@ -2531,12 +2542,13 @@ html{scroll-padding-top:4rem}
     out.innerHTML=h+'</div>';out.scrollIntoView({block:'start'});
   }
   $('turmaGo').addEventListener('click',renderTurma);
-  // a API de área de transferência só existe em https/localhost; fora disso, seleciona o texto para Ctrl+C
-  function copyShare(b){
-    const ta=$('shareTxt');
-    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(ta.value).then(()=>{b.textContent='Copiado';}).catch(()=>ta.select());
-    else ta.select();
+  // a API de área de transferência só existe em https/localhost; fora disso, seleciona o texto para Ctrl+C. O botão
+  // diz "Copiado" por 2 segundos e volta ao rótulo original
+  function copyText(ta,b){
+    if(!(navigator.clipboard&&navigator.clipboard.writeText)){ta.select();return;}
+    navigator.clipboard.writeText(ta.value).then(()=>{const t=b.dataset.t||(b.dataset.t=b.textContent);b.textContent='Copiado';setTimeout(()=>{b.textContent=t;},2000);}).catch(()=>ta.select());
   }
+  const copyShare=b=>copyText($('shareTxt'),b);
   route();
   applyPreset('rastreio');
 })();

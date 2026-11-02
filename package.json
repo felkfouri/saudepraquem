@@ -6,7 +6,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node tests/validar.js",
+    "test": "node tests/dados.js && node tests/validar.js",
+    "dados": "node tests/dados.js",
     "dilemas": "node tests/dilemas.js"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 'use strict';
 /* Motor de referência do Cobertor Curto, sem navegador: as regras do jogo escritas de novo, à parte da página, para
    tests/validar.js conferir a página contra elas. Os dados (cidades, propostas com a ficha de cada uma, dilemas,
-   eventos, opções de corte, dinheiro do ano e réguas) vêm do próprio index.html; as regras, não. Se uma regra mudar
+   eventos, opções de corte, dinheiro do ano, réguas e cartas do tutorial) vêm do próprio index.html; as regras, não. Se uma regra mudar
    na página, mude aqui também: a validação acusa qualquer diferença.
    Faz as mesmas chamadas ao gerador da partida, na mesma ordem que a página: calendário, baralho, realizações e
    negociação da emenda (o jornal tem gerador próprio e não entra aqui). Os nomes das funções são os da página. Unidades como na página:
@@ -14,12 +14,9 @@ function readData(file){
   const html=fs.readFileSync(file,'utf8');
   const part=(from,to)=>{const i=html.indexOf(from),j=i<0?-1:html.indexOf(to,i);if(j<0)throw new Error(file+': não achei o trecho que começa com '+JSON.stringify(from));return html.slice(i,j);};
   const src=part('  /* ---------- Jogo: dez anos de gestão ---------- */','  // gerador com semente')+part('  const GRADES=','\n')+'\n';
-  return new Function(src+'return {Y0,GL,MARGIN,CRISIS_F,EXTRA,TRANSFER,JUD,APOIO0,APOIO0_5,APOIO_MAX,CUS_G,PILOT,PACTO,CONF,CITIES,ADDON,EXITS,DECK,SINERGIAS,DILEMMAS,EVSPREAD,EVENTS,GRADES};')();
+  return new Function(src+'return {Y0,GL,MARGIN,CRISIS_F,EXTRA,TRANSFER,JUD,APOIO0,APOIO0_5,APOIO_MAX,CUS_G,PILOT,PACTO,CONF,CITIES,ADDON,EXITS,DECK,SINERGIAS,DILEMMAS,EVSPREAD,EVENTS,GRADES,TUTORIAL_HANDS};')();
 }
 const D=readData(path.join(__dirname,'..','index.html'));
-// cartas fixas dos anos 1 e 2 do tutorial (dealYear na página)
-const TUTORIAL_HANDS={1:['Vacinação na escola pública','Rastreamento de câncer por carta','Centro de cirurgia robótica','Campanha de mídia sobre alimentação'],
-  2:['Hipertensão e diabetes na atenção básica','Hospital-dia de cirurgia eletiva','Terapia gênica para doença rara','Transporte sanitário para consultas']};
 
 const POP=200000,N=5,TOTAL=POP*N;
 const sum=a=>a.reduce((s,x)=>s+x,0),mean=a=>sum(a)/a.length,zeros=()=>Array(N).fill(0);
@@ -67,7 +64,7 @@ function dealYear(G){
   G.eqCap=Math.max(0,G.city.eq+G.eqUp-(G.ev&&G.ev.eqMinus||0));G.conf=D.CONF[G.cfg.years].includes(G.year);G.cons='nenhum';
   if(G.deck.length<5)G.deck=shuffle(D.DECK.filter(d=>!G.hand.includes(d)),G.r);
   let hand=G.deck.splice(0,4);
-  if(G.cfg.tutorial&&G.year<=2){G.deck.push(...hand);hand=TUTORIAL_HANDS[G.year].map(n=>D.DECK.find(c=>c.nm===n));G.deck=G.deck.filter(c=>!hand.includes(c));}
+  if(G.cfg.tutorial&&G.year<=2){G.deck.push(...hand);hand=D.TUTORIAL_HANDS[G.year].map(n=>D.DECK.find(c=>c.nm===n));G.deck=G.deck.filter(c=>!hand.includes(c));}
   if(G.ev&&G.ev.ensureTag&&!hand.some(c=>(c.tags||[]).includes(G.ev.ensureTag))){
     const i=G.deck.findIndex(c=>(c.tags||[]).includes(G.ev.ensureTag));if(i>=0){G.deck.push(hand[0]);hand[0]=G.deck.splice(i,1)[0];}
   }
